@@ -1,1 +1,2 @@
-# walking-among-birds
+# Walking among birds
+### An experiment about movement
