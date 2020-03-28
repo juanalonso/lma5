@@ -27,9 +27,10 @@ function setup() {
 
 
 function draw() {
-    image(video, 0, 0, width, height);
+    background(255);
+    //image(video, 0, 0, width, height);
     if (poses.length > 0) {
-        drawSkeleton(poses);
+        //drawSkeleton(poses);
         drawKeypoints(poses);
         drawBezier(poses);
     }
@@ -86,13 +87,95 @@ function drawKeypoints() {
 function drawBezier() {
 
     let p = poses[0].pose;
+    noFill();
+
+    strokeWeight(4);
+    stroke(100, 255, 100);
+
+    curve(p["rightShoulder"].x, p["rightShoulder"].y,
+        p["leftShoulder"].x, p["leftShoulder"].y,
+        p["leftHip"].x, p["leftHip"].y,
+        p["rightHip"].x, p["rightHip"].y);
+
+    curve(p["leftShoulder"].x, p["leftShoulder"].y,
+        p["leftHip"].x, p["leftHip"].y,
+        p["rightHip"].x, p["rightHip"].y,
+        p["rightShoulder"].x, p["rightShoulder"].y);
+
+    curve(p["leftHip"].x, p["leftHip"].y,
+        p["rightHip"].x, p["rightHip"].y,
+        p["rightShoulder"].x, p["rightShoulder"].y,
+        p["leftShoulder"].x, p["leftShoulder"].y);
+    curve(
+        p["rightHip"].x, p["rightHip"].y,
+        p["rightShoulder"].x, p["rightShoulder"].y,
+        p["leftShoulder"].x, p["leftShoulder"].y,
+        p["leftHip"].x, p["leftHip"].y);    
 
     stroke(255, 100, 100);
-    line(p["rightWrist"].x, p["rightWrist"].y, p["rightElbow"].x, p["rightElbow"].y);
-    line(p["rightElbow"].x, p["rightElbow"].y, p["rightShoulder"].x, p["rightShoulder"].y);
-    line(p["rightShoulder"].x, p["rightShoulder"].y, p["leftShoulder"].x, p["leftShoulder"].y);
-    line(p["leftShoulder"].x, p["leftShoulder"].y, p["leftElbow"].x, p["leftElbow"].y);
-    line(p["leftElbow"].x, p["leftElbow"].y, p["leftWrist"].x, p["leftWrist"].y);
+    strokeWeight(4);
+    noFill();
+
+    curve(p["rightWrist"].x, p["rightWrist"].y,
+        p["rightWrist"].x, p["rightWrist"].y,
+        p["rightElbow"].x, p["rightElbow"].y,
+        p["rightShoulder"].x, p["rightShoulder"].y);
+
+    curve(p["rightWrist"].x, p["rightWrist"].y,
+        p["rightElbow"].x, p["rightElbow"].y,
+        p["rightShoulder"].x, p["rightShoulder"].y,
+        p["leftShoulder"].x, p["leftShoulder"].y);
+
+    curve(p["rightElbow"].x, p["rightElbow"].y,
+        p["rightShoulder"].x, p["rightShoulder"].y,
+        p["leftShoulder"].x, p["leftShoulder"].y,
+        p["leftElbow"].x, p["leftElbow"].y);
+
+    curve(p["rightShoulder"].x, p["rightShoulder"].y,
+        p["leftShoulder"].x, p["leftShoulder"].y,
+        p["leftElbow"].x, p["leftElbow"].y,
+        p["leftWrist"].x, p["leftWrist"].y);
+
+    curve(p["leftShoulder"].x, p["leftShoulder"].y,
+        p["leftElbow"].x, p["leftElbow"].y,
+        p["leftWrist"].x, p["leftWrist"].y,
+        p["leftWrist"].x, p["leftWrist"].y);
+
+    //
+    //
+    //
+    curve(p["rightAnkle"].x, p["rightAnkle"].y,
+        p["rightAnkle"].x, p["rightAnkle"].y,
+        p["rightKnee"].x, p["rightKnee"].y,
+        p["rightHip"].x, p["rightHip"].y);
+
+    curve(p["rightAnkle"].x, p["rightAnkle"].y,
+        p["rightKnee"].x, p["rightKnee"].y,
+        p["rightHip"].x, p["rightHip"].y,
+        p["leftHip"].x, p["leftHip"].y);
+
+    curve(p["rightKnee"].x, p["rightKnee"].y,
+        p["rightHip"].x, p["rightHip"].y,
+        p["leftHip"].x, p["leftHip"].y,
+        p["leftKnee"].x, p["leftKnee"].y);
+
+    curve(p["rightHip"].x, p["rightHip"].y,
+        p["leftHip"].x, p["leftHip"].y,
+        p["leftKnee"].x, p["leftKnee"].y,
+        p["leftAnkle"].x, p["leftAnkle"].y);
+
+    curve(p["leftHip"].x, p["leftHip"].y,
+        p["leftKnee"].x, p["leftKnee"].y,
+        p["leftAnkle"].x, p["leftAnkle"].y,
+        p["leftAnkle"].x, p["leftAnkle"].y);
+
+
+    //
+    //
+    //           
+
+
+
 }
 
 
