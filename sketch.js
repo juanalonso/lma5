@@ -62,7 +62,7 @@ function draw() {
     // image(video, 0, 0, width, height);
     for (let f = 0; f < min(poseList.length, 1); f++) {
         drawBezier(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
-        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
+        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), v);
     }
 
     select('#status').html(fps);
@@ -72,7 +72,7 @@ function draw() {
 
 function getVelocity(fps) {
 
-    let realFPS = 1;
+    let realFPS = 2;
     let dt2 = 2 / realFPS;
 
     let keys = Object.keys(poseList[0]);
@@ -118,7 +118,7 @@ function logPose() {
 
 
 
-function drawKeypoints(pose, opacity) {
+function drawKeypoints(pose, opacity, v) {
 
     fill(55, opacity);
     noStroke();
@@ -130,7 +130,10 @@ function drawKeypoints(pose, opacity) {
         }
         let keypoint = pose[keys[f]];
         //if (keypoint.score > 0.2) {
-        ellipse(keypoint.x, keypoint.y, 6, 6);
+        //circle(keypoint.x, keypoint.y, 6, 6);
+        if (typeof v !== 'undefined') {
+            circle(keypoint.x, keypoint.y, max(4,v[keys[f]]));
+        }
         //}
     }
 }
