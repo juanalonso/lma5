@@ -14,6 +14,7 @@ let logButton;
 let maxPoses = 10;
 let poseList = [];
 
+let dt = 0.8;
 
 
 function setup() {
@@ -50,12 +51,9 @@ function draw() {
     let v, a, j;
 
     if (poseList.length >= 5) {
-        v = getVelocity(fps);
+        [v, a, j] = getVAJ();
         select('#monitor').html(JSON.stringify(v));
 
-        //select('#monitor').html(JSON.stringify(v));
-        //a = getAcceleration(fps);
-        //j = getJerk(fps);
     }
 
     background(255);
@@ -70,24 +68,44 @@ function draw() {
 
 
 
-function getVelocity(fps) {
+function vectorFromKeypoint(kp) {
+    return createVector(kp.x, kp.y);
+}
 
-    let realFPS = 2;
-    let dt2 = 2 / realFPS;
+function getVAJ() {
 
     let keys = Object.keys(poseList[0]);
     let v = {}
+    let a = {}
+    let j = {}
 
     for (let f = 0; f < keys.length; f++) {
         if (keys[f] == "score") {
             continue;
         }
-        let kpv = Math.sqrt(Math.pow((poseList[1][keys[f]].x - poseList[3][keys[f]].x) / dt2, 2) +
-            Math.pow((poseList[1][keys[f]].y - poseList[3][keys[f]].y) / dt2, 2));
-        v[keys[f]] = kpv;
-    }
-    return v;
 
+        let xt0 = vectorFromKeypoint(poseList[0][keys[f]]);
+        let xt1 = vectorFromKeypoint(poseList[1][keys[f]]);
+        let xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
+        let xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
+        let xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
+        v[keys[f]] = xt1.sub(xt3).div(dt * 2).mag();
+
+        xt0 = vectorFromKeypoint(poseList[0][keys[f]]);
+        xt1 = vectorFromKeypoint(poseList[1][keys[f]]);
+        xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
+        xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
+        xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
+        a[keys[f]] = xt1.sub(xt2).sub(xt2).add(xt3).div(dt * dt).mag();
+
+        xt0 = vectorFromKeypoint(poseList[0][keys[f]]);
+        xt1 = vectorFromKeypoint(poseList[1][keys[f]]);
+        xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
+        xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
+        xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
+        j[keys[f]] = xt0.sub(xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * dt * dt * dt).mag();
+    }
+    return [v, a, j];
 }
 
 
@@ -132,7 +150,7 @@ function drawKeypoints(pose, opacity, v) {
         //if (keypoint.score > 0.2) {
         //circle(keypoint.x, keypoint.y, 6, 6);
         if (typeof v !== 'undefined') {
-            circle(keypoint.x, keypoint.y, max(4,v[keys[f]]));
+            circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
         }
         //}
     }
