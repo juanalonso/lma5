@@ -8,6 +8,9 @@ let options = {
     detectionType: 'single',
 }
 
+let weightJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
+let weightList = [];
+
 let logButton;
 //let playFrom = 140.6;
 
@@ -15,6 +18,8 @@ let maxPoses = 10;
 let poseList = [];
 
 let dt = 0.8;
+let T = 10;
+let Tcounter = 0;
 
 
 function setup() {
@@ -31,6 +36,8 @@ function setup() {
     var logButton = createButton('log');
     logButton.mousePressed(logPose);
     logButton.parent('button-placeholder');
+
+    select('#T').html("T=" + T);
 }
 
 
@@ -48,22 +55,34 @@ function draw() {
         poseList.pop();
     }
 
-    let v, a, j;
+    //Kinematic
+    let velocity, acceleration, jerk;
+
+    //Effort
+    let weight, time, space, flow;
 
     if (poseList.length >= 5) {
-        [v, a, j] = getVAJ();
-        select('#monitor').html(JSON.stringify(j));
+        [velocity, acceleration, jerk] = getVAJ();
+        weight = getWeight(velocity, weightJoints);
+        Tcounter++;
+    }
 
+    if (Tcounter >= T) {
+        Tcounter = 0;
+        select('#weight-effort').html("Weight = " + weight.toFixed(2));
     }
 
     background(255);
     // image(video, 0, 0, width, height);
     for (let f = 0; f < min(poseList.length, 1); f++) {
         drawBezier(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
-        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), j);
+        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), velocity);
     }
 
-    select('#status').html(int(fps*10)/10);
+    select('#status').html(fps.toFixed(1));
+    if (typeof velocity !== 'undefined') {
+        select('#monitor').html(JSON.stringify(velocity));
+    }
 }
 
 
@@ -90,11 +109,29 @@ function getVAJ() {
         let xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
         let xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
 
-        v[keys[f]] = p5.Vector.sub(xt1,xt3).div(dt * 2).mag();
-        a[keys[f]] = p5.Vector.sub(xt1,xt2).sub(xt2).add(xt3).div(dt * dt).mag();
-        j[keys[f]] = p5.Vector.sub(xt0,xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * dt * dt * dt).mag();
+        v[keys[f]] = p5.Vector.sub(xt1, xt3).div(dt * 2).mag();
+        a[keys[f]] = p5.Vector.sub(xt1, xt2).sub(xt2).add(xt3).div(dt * dt).mag();
+        j[keys[f]] = p5.Vector.sub(xt0, xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * dt * dt * dt).mag();
     }
     return [v, a, j];
+}
+
+function getWeight(v, jointList) {
+
+    let e = 0;
+    for (let f = 0; f < jointList.length; f++) {
+        e = e + 1.0 * Math.pow(v[jointList[f]], 2);
+    }
+
+    weightList.unshift(e);
+
+    if (weightList.length > T) {
+        weightList.pop();
+    }
+
+
+    return max(weightList);
+
 }
 
 
