@@ -52,7 +52,7 @@ function draw() {
 
     if (poseList.length >= 5) {
         [v, a, j] = getVAJ();
-        select('#monitor').html(JSON.stringify(v));
+        select('#monitor').html(JSON.stringify(j));
 
     }
 
@@ -60,10 +60,10 @@ function draw() {
     // image(video, 0, 0, width, height);
     for (let f = 0; f < min(poseList.length, 1); f++) {
         drawBezier(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
-        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), v);
+        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), j);
     }
 
-    select('#status').html(fps);
+    select('#status').html(int(fps*10)/10);
 }
 
 
@@ -89,21 +89,10 @@ function getVAJ() {
         let xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
         let xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
         let xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
-        v[keys[f]] = xt1.sub(xt3).div(dt * 2).mag();
 
-        xt0 = vectorFromKeypoint(poseList[0][keys[f]]);
-        xt1 = vectorFromKeypoint(poseList[1][keys[f]]);
-        xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
-        xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
-        xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
-        a[keys[f]] = xt1.sub(xt2).sub(xt2).add(xt3).div(dt * dt).mag();
-
-        xt0 = vectorFromKeypoint(poseList[0][keys[f]]);
-        xt1 = vectorFromKeypoint(poseList[1][keys[f]]);
-        xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
-        xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
-        xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
-        j[keys[f]] = xt0.sub(xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * dt * dt * dt).mag();
+        v[keys[f]] = p5.Vector.sub(xt1,xt3).div(dt * 2).mag();
+        a[keys[f]] = p5.Vector.sub(xt1,xt2).sub(xt2).add(xt3).div(dt * dt).mag();
+        j[keys[f]] = p5.Vector.sub(xt0,xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * dt * dt * dt).mag();
     }
     return [v, a, j];
 }
@@ -164,16 +153,14 @@ function drawKeypoints(pose, opacity, v) {
 
     let le = vectorFromKeypoint(pose.leftEar);
     let re = vectorFromKeypoint(pose.rightEar);
-    let center = p5.Vector.sub(le, re);
-    center.div(2).add(re);
+    let center = p5.Vector.sub(le, re).div(2).add(re);
+    //center;
 
     stroke(255, 100, 100, opacity);
     noFill();
 
     //circle(center.x, center.y, le.dist(re));
     ellipse(center.x, center.y, le.dist(re), le.dist(re) * 1.35);
-
-
 }
 
 function drawBezier(pose, opacity) {
