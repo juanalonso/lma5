@@ -143,7 +143,10 @@ function drawKeypoints(pose, opacity, v) {
 
     let keys = Object.keys(pose);
     for (let f = 0; f < keys.length; f++) {
-        if (keys[f] == "score") {
+        if (keys[f] == "score" ||
+            keys[f] == "leftEar" || keys[f] == "rightEar" ||
+            keys[f] == "leftEye" || keys[f] == "rightEye" ||
+            keys[f] == "nose") {
             continue;
         }
         let keypoint = pose[keys[f]];
@@ -154,6 +157,23 @@ function drawKeypoints(pose, opacity, v) {
         }
         //}
     }
+
+    circle(pose.leftEye.x, pose.leftEye.y, 6);
+    circle(pose.rightEye.x, pose.rightEye.y, 6);
+    //circle(pose.nose.x, pose.nose.y, 6);
+
+    let le = vectorFromKeypoint(pose.leftEar);
+    let re = vectorFromKeypoint(pose.rightEar);
+    let center = p5.Vector.sub(le, re);
+    center.div(2).add(re);
+
+    stroke(255, 100, 100, opacity);
+    noFill();
+
+    //circle(center.x, center.y, le.dist(re));
+    ellipse(center.x, center.y, le.dist(re), le.dist(re) * 1.35);
+
+
 }
 
 function drawBezier(pose, opacity) {
@@ -161,7 +181,7 @@ function drawBezier(pose, opacity) {
     noFill();
 
     strokeWeight(4);
-    stroke(100, 255, 100, opacity);
+    stroke(100, 200, 100, opacity);
 
     curve(pose.rightShoulder.x, pose.rightShoulder.y,
         pose.leftShoulder.x, pose.leftShoulder.y,
