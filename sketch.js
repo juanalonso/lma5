@@ -11,6 +11,12 @@ let options = {
 let weightJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
 let weightList = [];
 
+let timeJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
+let timeTemp;
+
+let flowJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
+let flowTemp;
+
 let logButton;
 //let playFrom = 140.6;
 
@@ -26,6 +32,7 @@ function setup() {
 
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
+    frameRate(2);
 
     //video = createVideo(['data/Franco Battiato - La stagione dell\'amore - 360.mp4'], videoReady);
     video = createVideo(['data/test_posenet.mp4'], videoReady);
@@ -64,24 +71,28 @@ function draw() {
     if (poseList.length >= 5) {
         [velocity, acceleration, jerk] = getVAJ();
         weight = getWeight(velocity, weightJoints);
+        time = getTime(acceleration, timeJoints);
+        flow = getFlow(jerk, flowJoints);
         Tcounter++;
     }
 
     if (Tcounter >= T) {
         Tcounter = 0;
         select('#weight-effort').html("Weight = " + weight.toFixed(2));
+        select('#time-effort').html("Time = " + time.toFixed(2));
+        select('#flow-effort').html("Flow = " + flow.toFixed(2));
     }
 
     background(255);
     // image(video, 0, 0, width, height);
     for (let f = 0; f < min(poseList.length, 1); f++) {
         drawBezier(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
-        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), velocity);
+        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), jerk);
     }
 
     select('#status').html(fps.toFixed(1));
     if (typeof velocity !== 'undefined') {
-        select('#monitor').html(JSON.stringify(velocity));
+        select('#monitor').html(JSON.stringify(jerk));
     }
 }
 
@@ -131,7 +142,55 @@ function getWeight(v, jointList) {
 
 
     return max(weightList);
+}
 
+function getTime(a, jointList) {
+
+    if (typeof timeTemp === 'undefined') {
+        timeTemp = {}
+        for (let f = 0; f < jointList.length; f++) {
+            timeTemp[jointList[f]] = 0;
+        }
+    }
+
+    for (let f = 0; f < jointList.length; f++) {
+        timeTemp[jointList[f]] = timeTemp[jointList[f]] + 1.0 * a[jointList[f]] / T;
+    }
+
+    let t = 0;
+    if (Tcounter >= T - 1) {
+        for (let f = 0; f < jointList.length; f++) {
+            t = t + timeTemp[jointList[f]];
+            timeTemp[jointList[f]] = 0;
+        }
+    }
+
+    return t;
+}
+
+function getFlow(j, jointList) {
+
+    if (typeof flowTemp === 'undefined') {
+        flowTemp = {}
+        for (let f = 0; f < jointList.length; f++) {
+            flowTemp[jointList[f]] = 0;
+        }
+    }
+
+
+    for (let f = 0; f < jointList.length; f++) {
+        flowTemp[jointList[f]] = flowTemp[jointList[f]] + j[jointList[f]] ;
+    }
+
+    let fl = 0;
+    if (Tcounter >= T - 1) {
+        for (let f = 0; f < jointList.length; f++) {
+            fl = fl + flowTemp[jointList[f]];
+            flowTemp[jointList[f]] = 0;
+        }
+    }
+
+    return fl;
 }
 
 
