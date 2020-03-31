@@ -32,7 +32,6 @@ function setup() {
 
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
-    frameRate(2);
 
     //video = createVideo(['data/Franco Battiato - La stagione dell\'amore - 360.mp4'], videoReady);
     video = createVideo(['data/test_posenet.mp4'], videoReady);
@@ -40,9 +39,9 @@ function setup() {
     video.volume(0);
     video.hide();
 
-    var logButton = createButton('log');
-    logButton.mousePressed(logPose);
-    logButton.parent('button-placeholder');
+    // var logButton = createButton('log');
+    // logButton.mousePressed(logPose);
+    // logButton.parent('button-placeholder');
 
     select('#T').html("T=" + T);
 }
@@ -86,13 +85,13 @@ function draw() {
     background(255);
     // image(video, 0, 0, width, height);
     for (let f = 0; f < min(poseList.length, 1); f++) {
-        drawBezier(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
+        drawAvatar(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
         drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), jerk);
     }
 
     select('#status').html(fps.toFixed(1));
     if (typeof velocity !== 'undefined') {
-        select('#monitor').html(JSON.stringify(jerk));
+        //select('#monitor').html(JSON.stringify(jerk));
     }
 }
 
@@ -206,6 +205,7 @@ function videoReady() {
 function modelReady() {
     select('#status').html('Go!');
     //video.play().time(playFrom);
+    video.time(74);
     video.loop();
 }
 
@@ -213,11 +213,11 @@ function modelReady() {
 //     video.play().time(playFrom);
 // }
 
-function logPose() {
-    if (poseList.length > 0) {
-        select('#monitor').html(JSON.stringify(poseList[0]));
-    }
-}
+// function logPose() {
+//     if (poseList.length > 0) {
+//         select('#monitor').html(JSON.stringify(poseList[0]));
+//     }
+// }
 
 
 
@@ -236,33 +236,21 @@ function drawKeypoints(pose, opacity, v) {
         }
         let keypoint = pose[keys[f]];
         //if (keypoint.score > 0.2) {
-        //circle(keypoint.x, keypoint.y, 6, 6);
         if (typeof v !== 'undefined') {
             circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
         }
         //}
     }
+}
 
-    circle(pose.leftEye.x, pose.leftEye.y, 6);
-    circle(pose.rightEye.x, pose.rightEye.y, 6);
-    //circle(pose.nose.x, pose.nose.y, 6);
+function drawAvatar(pose, opacity) {
 
     let le = vectorFromKeypoint(pose.leftEar);
     let re = vectorFromKeypoint(pose.rightEar);
     let center = p5.Vector.sub(le, re).div(2).add(re);
-    //center;
-
-    stroke(255, 100, 100, opacity);
-    noFill();
-
-    //circle(center.x, center.y, le.dist(re));
-    ellipse(center.x, center.y, le.dist(re), le.dist(re) * 1.35);
-}
-
-function drawBezier(pose, opacity) {
+    let angle = p5.Vector.sub(le, re).heading();
 
     noFill();
-
     strokeWeight(4);
     stroke(100, 200, 100, opacity);
 
@@ -286,9 +274,9 @@ function drawBezier(pose, opacity) {
         pose.leftShoulder.x, pose.leftShoulder.y,
         pose.leftHip.x, pose.leftHip.y);
 
+
+
     stroke(255, 100, 100, opacity);
-    strokeWeight(4);
-    noFill();
 
     curve(pose.rightWrist.x, pose.rightWrist.y,
         pose.rightWrist.x, pose.rightWrist.y,
@@ -342,15 +330,32 @@ function drawBezier(pose, opacity) {
         pose.leftKnee.x, pose.leftKnee.y,
         pose.leftAnkle.x, pose.leftAnkle.y,
         pose.leftAnkle.x, pose.leftAnkle.y);
+
+
+
+    stroke(255, 100, 100, opacity);
+    noFill();
+
+    push();
+    translate(center.x, center.y);
+    rotate(angle);
+    ellipse(0, 0, le.dist(re), le.dist(re) * 1.35);
+    pop();
+
+    fill(55, opacity);
+    noStroke();
+
+    circle(pose.leftEye.x, pose.leftEye.y, 6);
+    circle(pose.rightEye.x, pose.rightEye.y, 6);
 }
 
-function drawSkeleton() {
-    stroke(255);
-    strokeWeight(1);
-    let skeleton = poses[0].skeleton;
-    for (let f = 0; f < skeleton.length; f++) {
-        let partA = skeleton[f][0];
-        let partB = skeleton[f][1];
-        line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
-    }
-}
+// function drawSkeleton() {
+//     stroke(255);
+//     strokeWeight(1);
+//     let skeleton = poses[0].skeleton;
+//     for (let f = 0; f < skeleton.length; f++) {
+//         let partA = skeleton[f][0];
+//         let partB = skeleton[f][1];
+//         line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
+//     }
+// }
