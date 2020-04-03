@@ -17,15 +17,10 @@ let timeTemp;
 let flowJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
 let flowTemp;
 
-let logButton;
-//let playFrom = 140.6;
-
-let maxPoses = 10;
-let poseList = [];
-
-let dt = 0.8;
 let T = 10;
 let Tcounter = 0;
+
+let k = new Kinematic(0.8);
 
 
 function setup() {
@@ -33,15 +28,9 @@ function setup() {
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
 
-    //video = createVideo(['data/Franco Battiato - La stagione dell\'amore - 360.mp4'], videoReady);
     video = createVideo(['data/test_posenet.mp4'], videoReady);
-    //video.onended(videoEnded);
     video.volume(0);
     video.hide();
-
-    // var logButton = createButton('log');
-    // logButton.mousePressed(logPose);
-    // logButton.parent('button-placeholder');
 
     select('#T').html("T=" + T);
 }
@@ -50,80 +39,38 @@ function setup() {
 
 function draw() {
 
-    let fps = frameRate();
-
-    if (poses.length > 0) {
-        delete poses[0].pose.keypoints;
-        poseList.unshift(poses[0].pose);
-    }
-
-    if (poseList.length > maxPoses) {
-        poseList.pop();
-    }
+    k.addPose(poses);
 
     //Kinematic
-    let velocity, acceleration, jerk;
+    [velocity, acceleration, jerk] = k.getKinematic();
 
     //Effort
     let weight, time, space, flow;
 
-    if (poseList.length >= 5) {
-        [velocity, acceleration, jerk] = getVAJ();
-        weight = getWeight(velocity, weightJoints);
-        time = getTime(acceleration, timeJoints);
-        flow = getFlow(jerk, flowJoints);
-        Tcounter++;
-    }
+    // weight = getWeight(velocity, weightJoints);
+    // time = getTime(acceleration, timeJoints);
+    // flow = getFlow(jerk, flowJoints);
+    // Tcounter++;
 
-    if (Tcounter >= T) {
-        Tcounter = 0;
-        select('#weight-effort').html("Weight = " + weight.toFixed(2));
-        select('#time-effort').html("Time = " + time.toFixed(2));
-        select('#flow-effort').html("Flow = " + flow.toFixed(2));
-    }
+    // if (Tcounter >= T) {
+    //     Tcounter = 0;
+    //     select('#weight-effort').html("Weight = " + weight.toFixed(2));
+    //     select('#time-effort').html("Time = " + time.toFixed(2));
+    //     select('#flow-effort').html("Flow = " + flow.toFixed(2));
+    // }
 
     background(255);
     // image(video, 0, 0, width, height);
-    for (let f = 0; f < min(poseList.length, 1); f++) {
-        drawAvatar(poseList[f], map(f, 0, maxPoses - 1, 255, 15));
-        drawKeypoints(poseList[f], map(f, 0, maxPoses - 1, 255, 15), jerk);
+
+    if (poses.length > 0) {
+        drawAvatar(poses[0].pose);
+    }
+    if (velocity.length > 0) {
+        drawKeypoints(poses[0].pose, velocity);
     }
 
-    select('#status').html(fps.toFixed(1));
-    if (typeof velocity !== 'undefined') {
-        //select('#monitor').html(JSON.stringify(jerk));
-    }
-}
-
-
-
-function vectorFromKeypoint(kp) {
-    return createVector(kp.x, kp.y);
-}
-
-function getVAJ() {
-
-    let keys = Object.keys(poseList[0]);
-    let v = {}
-    let a = {}
-    let j = {}
-
-    for (let f = 0; f < keys.length; f++) {
-        if (keys[f] == "score") {
-            continue;
-        }
-
-        let xt0 = vectorFromKeypoint(poseList[0][keys[f]]);
-        let xt1 = vectorFromKeypoint(poseList[1][keys[f]]);
-        let xt2 = vectorFromKeypoint(poseList[2][keys[f]]);
-        let xt3 = vectorFromKeypoint(poseList[3][keys[f]]);
-        let xt4 = vectorFromKeypoint(poseList[4][keys[f]]);
-
-        v[keys[f]] = p5.Vector.sub(xt1, xt3).div(dt * 2).mag();
-        a[keys[f]] = p5.Vector.sub(xt1, xt2).sub(xt2).add(xt3).div(dt * dt).mag();
-        j[keys[f]] = p5.Vector.sub(xt0, xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * dt * dt * dt).mag();
-    }
-    return [v, a, j];
+    select('#status').html(frameRate().toFixed(1));
+    select('#monitor').html(JSON.stringify(velocity));
 }
 
 function getWeight(v, jointList) {
@@ -178,7 +125,7 @@ function getFlow(j, jointList) {
 
 
     for (let f = 0; f < jointList.length; f++) {
-        flowTemp[jointList[f]] = flowTemp[jointList[f]] + j[jointList[f]] ;
+        flowTemp[jointList[f]] = flowTemp[jointList[f]] + j[jointList[f]];
     }
 
     let fl = 0;
@@ -204,49 +151,34 @@ function videoReady() {
 
 function modelReady() {
     select('#status').html('Go!');
-    //video.play().time(playFrom);
-    video.time(74);
+    //video.time(74);
     video.loop();
 }
 
-// function videoEnded() {
-//     video.play().time(playFrom);
-// }
 
-// function logPose() {
-//     if (poseList.length > 0) {
-//         select('#monitor').html(JSON.stringify(poseList[0]));
-//     }
-// }
+function drawKeypoints(pose, v) {
 
-
-
-function drawKeypoints(pose, opacity, v) {
-
-    fill(55, opacity);
+    fill(55);
     noStroke();
 
     let keys = Object.keys(pose);
     for (let f = 0; f < keys.length; f++) {
-        if (keys[f] == "score" ||
-            keys[f] == "leftEar" || keys[f] == "rightEar" ||
+        if (keys[f] == "leftEar" || keys[f] == "rightEar" ||
             keys[f] == "leftEye" || keys[f] == "rightEye" ||
             keys[f] == "nose") {
             continue;
         }
         let keypoint = pose[keys[f]];
         //if (keypoint.score > 0.2) {
-        if (typeof v !== 'undefined') {
-            circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
-        }
+        circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
         //}
     }
 }
 
 function drawAvatar(pose, opacity) {
 
-    let le = vectorFromKeypoint(pose.leftEar);
-    let re = vectorFromKeypoint(pose.rightEar);
+    let le = Kinematic.vectorFromKeypoint(pose.leftEar);
+    let re = Kinematic.vectorFromKeypoint(pose.rightEar);
     let center = p5.Vector.sub(le, re).div(2).add(re);
     let angle = p5.Vector.sub(le, re).heading();
 
@@ -348,14 +280,3 @@ function drawAvatar(pose, opacity) {
     circle(pose.leftEye.x, pose.leftEye.y, 6);
     circle(pose.rightEye.x, pose.rightEye.y, 6);
 }
-
-// function drawSkeleton() {
-//     stroke(255);
-//     strokeWeight(1);
-//     let skeleton = poses[0].skeleton;
-//     for (let f = 0; f < skeleton.length; f++) {
-//         let partA = skeleton[f][0];
-//         let partB = skeleton[f][1];
-//         line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
-//     }
-// }
