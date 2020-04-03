@@ -8,19 +8,14 @@ let options = {
     detectionType: 'single',
 }
 
-let weightJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
-let weightList = [];
 
-let timeJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
-let timeTemp;
+let dt = 0.8;
+let k = new Kinematic(dt);
 
-let flowJoints = ["leftWrist", "leftElbow", "leftShoulder", "rightWrist", "rightElbow", "rightShoulder"];
-let flowTemp;
 
-let T = 10;
-let Tcounter = 0;
-
-let k = new Kinematic(0.8);
+let jointList = ["leftWrist", "leftElbow", "leftShoulder"];
+let T = 5;
+let e = new Effort(T, jointList)
 
 
 function setup() {
@@ -31,6 +26,8 @@ function setup() {
     video = createVideo(['data/test_posenet.mp4'], videoReady);
     video.volume(0);
     video.hide();
+
+    frameRate(60);
 
     select('#T').html("T=" + T);
 }
@@ -45,19 +42,16 @@ function draw() {
     [velocity, acceleration, jerk] = k.getKinematic();
 
     //Effort
-    let weight, time, space, flow;
+    let space;
 
-    // weight = getWeight(velocity, weightJoints);
-    // time = getTime(acceleration, timeJoints);
-    // flow = getFlow(jerk, flowJoints);
-    // Tcounter++;
+    let weight = e.weight(velocity);
+    let time = e.time(acceleration);
+    let flow = e.flow(jerk);
 
-    // if (Tcounter >= T) {
-    //     Tcounter = 0;
-    //     select('#weight-effort').html("Weight = " + weight.toFixed(2));
-    //     select('#time-effort').html("Time = " + time.toFixed(2));
-    //     select('#flow-effort').html("Flow = " + flow.toFixed(2));
-    // }
+    select('#weight-effort').html("Weight = " + weight.toFixed(2));
+    select('#time-effort').html("Time = " + time.toFixed(2));
+    //select('#space-effort').html("Vel = " + velocity.leftWrist.toFixed(2));
+    select('#flow-effort').html("Flow = " + flow.toFixed(2));
 
     background(255);
     // image(video, 0, 0, width, height);
@@ -65,54 +59,12 @@ function draw() {
     if (poses.length > 0) {
         drawAvatar(poses[0].pose);
     }
-    if (velocity.length > 0) {
+    if (Object.keys(velocity).length !== 0) {
         drawKeypoints(poses[0].pose, velocity);
     }
 
-    select('#status').html(frameRate().toFixed(1));
-    select('#monitor').html(JSON.stringify(velocity));
 }
 
-function getWeight(v, jointList) {
-
-    let e = 0;
-    for (let f = 0; f < jointList.length; f++) {
-        e = e + 1.0 * Math.pow(v[jointList[f]], 2);
-    }
-
-    weightList.unshift(e);
-
-    if (weightList.length > T) {
-        weightList.pop();
-    }
-
-
-    return max(weightList);
-}
-
-function getTime(a, jointList) {
-
-    if (typeof timeTemp === 'undefined') {
-        timeTemp = {}
-        for (let f = 0; f < jointList.length; f++) {
-            timeTemp[jointList[f]] = 0;
-        }
-    }
-
-    for (let f = 0; f < jointList.length; f++) {
-        timeTemp[jointList[f]] = timeTemp[jointList[f]] + 1.0 * a[jointList[f]] / T;
-    }
-
-    let t = 0;
-    if (Tcounter >= T - 1) {
-        for (let f = 0; f < jointList.length; f++) {
-            t = t + timeTemp[jointList[f]];
-            timeTemp[jointList[f]] = 0;
-        }
-    }
-
-    return t;
-}
 
 function getFlow(j, jointList) {
 
