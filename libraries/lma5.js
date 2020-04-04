@@ -50,7 +50,7 @@ class Effort {
         }
 
         for (let k = 0; k < this.jointList.length; k++) {
-            this.tPartial += 1.0 * acceleration[this.jointList[k]] / T;
+            this.tPartial += 1.0 * acceleration[this.jointList[k]] / this.T;
         }
 
         this.tCounter++;
@@ -70,7 +70,7 @@ class Effort {
         }
 
         for (let k = 0; k < this.jointList.length; k++) {
-            this.fPartial += 1.0 * jerk[this.jointList[k]] / T;
+            this.fPartial += 1.0 * jerk[this.jointList[k]] / this.T;
         }
 
         this.fCounter++;
