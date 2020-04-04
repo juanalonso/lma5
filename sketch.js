@@ -14,7 +14,7 @@ let k = new Kinematic(dt);
 
 
 let jointList = ["leftWrist", "leftElbow", "leftShoulder"];
-let T = 5;
+let T = 10;
 let e = new Effort(T, jointList)
 
 
@@ -42,15 +42,14 @@ function draw() {
     [velocity, acceleration, jerk] = k.getKinematic();
 
     //Effort
-    let space;
-
     let weight = e.weight(velocity);
     let time = e.time(acceleration);
+    let space = e.space(poses);
     let flow = e.flow(jerk);
 
     select('#weight-effort').html("Weight = " + weight.toFixed(2));
     select('#time-effort').html("Time = " + time.toFixed(2));
-    //select('#space-effort').html("Vel = " + velocity.leftWrist.toFixed(2));
+    select('#space-effort').html("Space = " + space.toFixed(2));
     select('#flow-effort').html("Flow = " + flow.toFixed(2));
 
     background(255);
@@ -58,39 +57,12 @@ function draw() {
 
     if (poses.length > 0) {
         drawAvatar(poses[0].pose);
-    }
-    if (Object.keys(velocity).length !== 0) {
-        drawKeypoints(poses[0].pose, velocity);
-    }
-
-}
-
-
-function getFlow(j, jointList) {
-
-    if (typeof flowTemp === 'undefined') {
-        flowTemp = {}
-        for (let f = 0; f < jointList.length; f++) {
-            flowTemp[jointList[f]] = 0;
+        if (Object.keys(velocity).length !== 0) {
+            drawKeypoints(poses[0].pose, velocity);
         }
     }
 
-
-    for (let f = 0; f < jointList.length; f++) {
-        flowTemp[jointList[f]] = flowTemp[jointList[f]] + j[jointList[f]];
-    }
-
-    let fl = 0;
-    if (Tcounter >= T - 1) {
-        for (let f = 0; f < jointList.length; f++) {
-            fl = fl + flowTemp[jointList[f]];
-            flowTemp[jointList[f]] = 0;
-        }
-    }
-
-    return fl;
 }
-
 
 
 function videoReady() {
