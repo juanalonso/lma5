@@ -2,6 +2,8 @@ class Effort {
 
     constructor(T = 5, jointList) {
         //@TODO: use alpha, now harcoded to 1 in each descriptor
+        //@TODO: check T>= 2 if we use space
+        //@TODO: add epsilon for space
         this.T = T;
         this.jointList = jointList;
 
@@ -15,10 +17,20 @@ class Effort {
         this.t = 0;
         this.tPartial = 0;
 
+        //Space
+        this.sCounter = 0;
+        this.s = 0;
+        this.sPartial = 0;
+        this.sList = {};
+        for (let k = 0; k < this.jointList.length; k++) {
+            this.sList[this.jointList[k]] = [];
+        }
+
         //Flow
         this.fCounter = 0;
         this.f = 0;
         this.fPartial = 0;
+
     }
 
     weight(velocity) {
@@ -61,6 +73,36 @@ class Effort {
         }
 
         return this.t;
+    }
+
+    space(poses) {
+
+        if (poses.length == 0) {
+            return this.s;
+        }
+
+        for (let k = 0; k < this.jointList.length; k++) {
+            this.sList[this.jointList[k]][this.sCounter] = Kinematic.vectorFromKeypoint(poses[0].pose[this.jointList[k]]);
+        }
+
+        this.sCounter++;
+        if (this.sCounter >= this.T) {
+            for (let k = 0; k < this.jointList.length; k++) {
+                let joint = 0;
+                for (let i = 1; i < this.T; i++) {
+                    joint += p5.Vector.sub(this.sList[this.jointList[k]][i],
+                        this.sList[this.jointList[k]][i - 1]).mag();
+                }
+                joint = joint / p5.Vector.sub(this.sList[this.jointList[k]][0],
+                    this.sList[this.jointList[k]][this.T - 1]).mag();
+                this.sPartial += 1.0 * joint;
+            }
+            this.sCounter = 0;
+            this.s = this.sPartial;
+            this.sPartial = 0;
+        }
+
+        return this.s;
     }
 
     flow(jerk) {
