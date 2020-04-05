@@ -15,23 +15,36 @@ let k = new Kinematic(dt);
 
 let jointList = ["leftWrist", "leftElbow", "leftShoulder"];
 let T = 10;
-let e = new Effort(T, jointList)
+let e = new Effort(T, jointList);
+
+
+function preload() {
+    video = createVideo(['data/test_posenet.mp4']);
+}
 
 
 function setup() {
 
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
-
-    video = createVideo(['data/test_posenet.mp4'], videoReady);
+    
     video.volume(0);
     video.hide();
+
+    select('#status').html('Loading model...');
+    poseNet = ml5.poseNet(video, modelReady, options);
+    poseNet.on('pose', function(results) {
+        if (typeof results[0] !== 'undefined') {
+            pose = results[0].pose;
+            delete pose.keypoints;
+            delete pose.score;
+        }
+    });
 
     frameRate(60);
 
     select('#T').html("T=" + T);
 }
-
 
 
 function draw() {
@@ -65,16 +78,6 @@ function draw() {
 }
 
 
-function videoReady() {
-    select('#status').html('Loading model...');
-    poseNet = ml5.poseNet(video, modelReady, options);
-    poseNet.on('pose', function(results) {
-        pose = results[0].pose;
-        delete pose.keypoints;
-        delete pose.score;
-    });
-}
-
 function modelReady() {
     select('#status').html('Go!');
     //video.time(74);
@@ -100,6 +103,7 @@ function drawKeypoints(pose, v) {
         //}
     }
 }
+
 
 function drawAvatar(pose, opacity) {
 
