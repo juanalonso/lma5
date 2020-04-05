@@ -1,9 +1,11 @@
+//@TODO: use alpha, now harcoded to 1 in each descriptor
+//@TODO: check T>= 2 if we use space
+//@TODO: add epsilon for space
+//@TODO: create a namespace
+
 class Effort {
 
     constructor(T = 5, jointList) {
-        //@TODO: use alpha, now harcoded to 1 in each descriptor
-        //@TODO: check T>= 2 if we use space
-        //@TODO: add epsilon for space
         this.T = T;
         this.jointList = jointList;
 
@@ -75,14 +77,14 @@ class Effort {
         return this.t;
     }
 
-    space(poses) {
+    space(pose) {
 
-        if (poses.length == 0) {
+        if (typeof pose === 'undefined') {
             return this.s;
         }
 
         for (let k = 0; k < this.jointList.length; k++) {
-            this.sList[this.jointList[k]][this.sCounter] = Kinematic.vectorFromKeypoint(poses[0].pose[this.jointList[k]]);
+            this.sList[this.jointList[k]][this.sCounter] = Utils.vectorFromKeypoint(pose[this.jointList[k]]);
         }
 
         this.sCounter++;
@@ -135,15 +137,11 @@ class Kinematic {
         this.poseList = [];
     }
 
+    addPose(pose) {
 
-    addPose(poses) {
+        if (typeof pose !== 'undefined') {
 
-        if (poses.length > 0) {
-
-            delete poses[0].pose.keypoints;
-            delete poses[0].pose.score;
-
-            this.poseList.unshift(poses[0].pose);
+            this.poseList.unshift(pose);
 
             if (this.poseList.length > this.maxPoses) {
                 this.poseList.pop();
@@ -151,18 +149,7 @@ class Kinematic {
         }
     }
 
-
-    vectorFromKeypoint(kp) {
-        return createVector(kp.x, kp.y);
-    }
-
-    static vectorFromKeypoint(kp) {
-        return createVector(kp.x, kp.y);
-    }
-
-
     getKinematic() {
-
 
         if (this.poseList.length < this.maxPoses) {
             return [{}, {}, {}];
@@ -175,17 +162,28 @@ class Kinematic {
 
         for (let t = 0; t < keys.length; t++) {
 
-            let xt0 = this.vectorFromKeypoint(this.poseList[0][keys[t]]);
-            let xt1 = this.vectorFromKeypoint(this.poseList[1][keys[t]]);
-            let xt2 = this.vectorFromKeypoint(this.poseList[2][keys[t]]);
-            let xt3 = this.vectorFromKeypoint(this.poseList[3][keys[t]]);
-            let xt4 = this.vectorFromKeypoint(this.poseList[4][keys[t]]);
+            let xt0 = Utils.vectorFromKeypoint(this.poseList[0][keys[t]]);
+            let xt1 = Utils.vectorFromKeypoint(this.poseList[1][keys[t]]);
+            let xt2 = Utils.vectorFromKeypoint(this.poseList[2][keys[t]]);
+            let xt3 = Utils.vectorFromKeypoint(this.poseList[3][keys[t]]);
+            let xt4 = Utils.vectorFromKeypoint(this.poseList[4][keys[t]]);
 
             v[keys[t]] = p5.Vector.sub(xt1, xt3).div(this.dt * 2).mag();
             a[keys[t]] = p5.Vector.sub(xt1, xt2).sub(xt2).add(xt3).div(this.dt * this.dt).mag();
             j[keys[t]] = p5.Vector.sub(xt0, xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * this.dt * this.dt * this.dt).mag();
         }
         return [v, a, j];
+    }
+
+}
+
+class Utils {
+    static vectorFromKeypoint(kp) {
+        let z = 0;
+        if (typeof kp.z !== 'undefined') {
+            z = kp.z;
+        }
+        return createVector(kp.x, kp.y, z);
     }
 
 }
