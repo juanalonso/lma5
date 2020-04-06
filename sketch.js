@@ -60,10 +60,10 @@ function draw() {
     let space = e.space(pose);
     let flow = e.flow(jerk);
 
-    select('#weight-effort').html("Weight = " + weight.toFixed(2));
-    select('#time-effort').html("Time = " + time.toFixed(2));
-    select('#space-effort').html("Space = " + space.toFixed(2));
-    select('#flow-effort').html("Flow = " + flow.toFixed(2));
+    select('#weight-effort').html(weight.toFixed(2));
+    select('#time-effort').html(time.toFixed(2));
+    select('#space-effort').html(space.toFixed(2));
+    select('#flow-effort').html(flow.toFixed(2));
 
     background(255);
     // image(video, 0, 0, width, height);
@@ -79,7 +79,7 @@ function draw() {
 
 
 function modelReady() {
-    select('#status').html('Go!');
+    select('#status').html('');
     //video.time(74);
     video.loop();
 }
