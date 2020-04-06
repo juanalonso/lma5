@@ -27,7 +27,7 @@ function setup() {
 
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
-    
+
     video.volume(0);
     video.hide();
 
@@ -43,7 +43,8 @@ function setup() {
 
     frameRate(60);
 
-    select('#T').html("T=" + T);
+    select('#T').html("dt=" + dt + " T=" + T);
+
 }
 
 
@@ -65,7 +66,7 @@ function draw() {
     select('#space-effort').html(space.toFixed(2));
     select('#flow-effort').html(flow.toFixed(2));
 
-    background(255);
+    background(248);
     // image(video, 0, 0, width, height);
 
     if (typeof pose !== 'undefined') {
