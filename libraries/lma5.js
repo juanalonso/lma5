@@ -1,6 +1,5 @@
 //@TODO: use alpha, now harcoded to 1 in each descriptor
 //@TODO: check T>= 2 if we use space
-//@TODO: add epsilon for space
 //@TODO: create a namespace
 
 class Effort {
@@ -32,7 +31,6 @@ class Effort {
         this.fCounter = 0;
         this.f = 0;
         this.fPartial = 0;
-
     }
 
     weight(velocity) {
@@ -95,8 +93,8 @@ class Effort {
                     joint += p5.Vector.sub(this.sList[this.jointList[k]][i],
                         this.sList[this.jointList[k]][i - 1]).mag();
                 }
-                joint = joint / p5.Vector.sub(this.sList[this.jointList[k]][0],
-                    this.sList[this.jointList[k]][this.T - 1]).mag();
+                joint = joint / (p5.Vector.sub(this.sList[this.jointList[k]][0],
+                    this.sList[this.jointList[k]][this.T - 1]).mag()+Number.EPSILON);
                 this.sPartial += 1.0 * joint;
             }
             this.sCounter = 0;
@@ -178,6 +176,7 @@ class Kinematic {
 }
 
 class Utils {
+    
     static vectorFromKeypoint(kp) {
         let z = 0;
         if (typeof kp.z !== 'undefined') {
