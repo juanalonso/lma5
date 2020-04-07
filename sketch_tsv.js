@@ -5,7 +5,7 @@ let posedata;
 let dt = 0.02;
 let k = new Kinematic(dt);
 
-let jointList = ["leftHand", "rightHand", "head"];
+let jointList = ["head", "rightHand", "leftHand"];
 let T = 10;
 let e = new Effort(T, jointList);
 
@@ -31,20 +31,9 @@ function setup() {
 }
 
 
-function rowToPose(row) {
-
-    let o = new Object();
-    o.head = { "x": parseFloat(row.arr[0]), "y": parseFloat(row.arr[1]), "z": parseFloat(row.arr[2]) };
-    o.rightHand = { "x": parseFloat(row.arr[3]), "y": parseFloat(row.arr[4]), "z": parseFloat(row.arr[5]) };
-    o.leftHand = { "x": parseFloat(row.arr[6]), "y": parseFloat(row.arr[7]), "z": parseFloat(row.arr[8]) };
-
-    return o;
-}
-
-
 function draw() {
 
-    pose = rowToPose(posedata.getRow(index));
+    pose = Utils.fromTSV(posedata.getRow(index), jointList);
 
     index += 1;
     if (index >= posedata.getRowCount()) {
@@ -76,17 +65,17 @@ function draw() {
 
 
 
-function drawKeypoints(pose, v) {
+// function drawKeypoints(pose, v) {
 
-    fill(55);
-    noStroke();
+//     fill(55);
+//     noStroke();
 
-    let keys = Object.keys(pose);
-    for (let f = 0; f < keys.length; f++) {
-        let keypoint = pose[keys[f]];
-        circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
-    }
-}
+//     let keys = Object.keys(pose);
+//     for (let f = 0; f < keys.length; f++) {
+//         let keypoint = pose[keys[f]];
+//         circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
+//     }
+// }
 
 function drawAvatar(pose, opacity) {
 

@@ -1,6 +1,8 @@
 //@TODO: use alpha, now harcoded to 1 in each descriptor
 //@TODO: check T>= 2 if we use space
 //@TODO: create a namespace
+//@TODO error if dimensions is not valid
+
 
 class Effort {
 
@@ -94,7 +96,7 @@ class Effort {
                         this.sList[this.jointList[k]][i - 1]).mag();
                 }
                 joint = joint / (p5.Vector.sub(this.sList[this.jointList[k]][0],
-                    this.sList[this.jointList[k]][this.T - 1]).mag()+Number.EPSILON);
+                    this.sList[this.jointList[k]][this.T - 1]).mag() + Number.EPSILON);
                 this.sPartial += 1.0 * joint;
             }
             this.sCounter = 0;
@@ -176,13 +178,38 @@ class Kinematic {
 }
 
 class Utils {
-    
+
     static vectorFromKeypoint(kp) {
         let z = 0;
         if (typeof kp.z !== 'undefined') {
             z = kp.z;
         }
         return createVector(kp.x, kp.y, z);
+    }
+
+    static fromPoseNet(results) {
+        if (typeof results[0] !== 'undefined') {
+            pose = results[0].pose;
+            delete pose.keypoints;
+            delete pose.score;
+            return pose;
+        }
+    }
+
+    static fromTSV(row, jointList) {
+
+        let o = new Object();
+
+        let dimensions = row.arr.length / jointList.length;
+
+        for (let k = 0; k < jointList.length; k++) {
+            o[jointList[k]] = { "x": parseFloat(row.arr[k * dimensions]), "y": parseFloat(row.arr[k * dimensions + 1]) };
+            if (dimensions == 3) {
+                o[jointList[k]].z = parseFloat(row.arr[k * dimensions + 2]);
+            }
+        }
+
+        return o;
     }
 
 }

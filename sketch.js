@@ -34,11 +34,7 @@ function setup() {
     select('#status').html('Loading model...');
     poseNet = ml5.poseNet(video, modelReady, options);
     poseNet.on('pose', function(results) {
-        if (typeof results[0] !== 'undefined') {
-            pose = results[0].pose;
-            delete pose.keypoints;
-            delete pose.score;
-        }
+        pose = Utils.fromPoseNet(results);
     });
 
     frameRate(60);
