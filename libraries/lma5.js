@@ -2,6 +2,7 @@
 //@TODO: create a namespace
 //@TODO: error if dimensions is not valid
 //@TODO: error if length alpha != length joinlist
+//@TODO: error in updateAlpha if joint is not valid
 
 
 class Effort {
@@ -37,6 +38,10 @@ class Effort {
         this.fCounter = 0;
         this.f = 0;
         this.fPartial = 0;
+    }
+
+    updateAlpha(joint, alpha) {
+        this.alpha[this.joints.indexOf(joint)] = alpha;
     }
 
     weight(velocity) {
