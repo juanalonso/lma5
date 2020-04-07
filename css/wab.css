@@ -15,3 +15,7 @@
  .card.small h1 {
      margin-bottom: 4px;
  }
+
+ button {
+    font-size: calc(1rem * var(--heading-ratio) );
+ }
