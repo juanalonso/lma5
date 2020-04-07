@@ -5,7 +5,11 @@ let posedata;
 let dt = 0.02;
 let k = new Kinematic(dt);
 
-let jointList = ["head", "rightHand", "leftHand"];
+let jointList = {
+    "head": 1,
+    "rightHand": 1.1,
+    "leftHand": 1.2,
+};
 let T = 10;
 let e = new Effort(T, jointList);
 
@@ -25,15 +29,22 @@ function setup() {
 
     frameRate(100);
 
-    select('#T').html("dt=" + dt + " T=" + T);
+    for (let k = 0; k < e.joints.length; k++) {
+        var button = createElement('div', '<button>' + e.alpha[k].toFixed(2) + ' * ' + e.joints[k] + '</button>');
+        button.parent('jointlist');
+    }
+
+    select('#T').html('dt=' + dt + ' T=' + T);
 
     print(posedata.getRowCount() + ' data points');
+
+    print(e);
 }
 
 
 function draw() {
 
-    pose = Utils.fromTSV(posedata.getRow(index), jointList);
+    pose = Utils.fromTSV(posedata.getRow(index), e.joints);
 
     index += 1;
     if (index >= posedata.getRowCount()) {
@@ -44,7 +55,6 @@ function draw() {
 
     //Kinematic
     [velocity, acceleration, jerk] = k.getKinematic();
-
 
     //Effort
     let weight = e.weight(velocity);
@@ -63,19 +73,6 @@ function draw() {
 
 }
 
-
-
-// function drawKeypoints(pose, v) {
-
-//     fill(55);
-//     noStroke();
-
-//     let keys = Object.keys(pose);
-//     for (let f = 0; f < keys.length; f++) {
-//         let keypoint = pose[keys[f]];
-//         circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
-//     }
-// }
 
 function drawAvatar(pose, opacity) {
 

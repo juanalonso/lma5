@@ -1,14 +1,18 @@
-//@TODO: use alpha, now harcoded to 1 in each descriptor
 //@TODO: check T>= 2 if we use space
 //@TODO: create a namespace
-//@TODO error if dimensions is not valid
+//@TODO: error if dimensions is not valid
+//@TODO: error if length alpha != length joinlist
 
 
 class Effort {
 
     constructor(T = 5, jointList) {
         this.T = T;
-        this.jointList = jointList;
+        this.joints = Object.keys(jointList);
+        this.alpha = [];
+        for (let k = 0; k < this.joints.length; k++) {
+            this.alpha[k] = jointList[this.joints[k]];
+        }
 
         //Weight
         this.wCounter = 0;
@@ -25,8 +29,8 @@ class Effort {
         this.s = 0;
         this.sPartial = 0;
         this.sList = {};
-        for (let k = 0; k < this.jointList.length; k++) {
-            this.sList[this.jointList[k]] = [];
+        for (let k = 0; k < this.joints.length; k++) {
+            this.sList[this.joints[k]] = [];
         }
 
         //Flow
@@ -42,8 +46,8 @@ class Effort {
         }
 
         let e = 0;
-        for (let k = 0; k < this.jointList.length; k++) {
-            e += 1.0 * Math.pow(velocity[this.jointList[k]], 2);
+        for (let k = 0; k < this.joints.length; k++) {
+            e += this.alpha[k] * Math.pow(velocity[this.joints[k]], 2);
         }
         this.wPartial = max(this.wPartial, e);
 
@@ -63,8 +67,8 @@ class Effort {
             return 0;
         }
 
-        for (let k = 0; k < this.jointList.length; k++) {
-            this.tPartial += 1.0 * acceleration[this.jointList[k]] / this.T;
+        for (let k = 0; k < this.joints.length; k++) {
+            this.tPartial += this.alpha[k] * acceleration[this.joints[k]] / this.T;
         }
 
         this.tCounter++;
@@ -83,21 +87,21 @@ class Effort {
             return this.s;
         }
 
-        for (let k = 0; k < this.jointList.length; k++) {
-            this.sList[this.jointList[k]][this.sCounter] = Utils.vectorFromKeypoint(pose[this.jointList[k]]);
+        for (let k = 0; k < this.joints.length; k++) {
+            this.sList[this.joints[k]][this.sCounter] = Utils.vectorFromKeypoint(pose[this.joints[k]]);
         }
 
         this.sCounter++;
         if (this.sCounter >= this.T) {
-            for (let k = 0; k < this.jointList.length; k++) {
+            for (let k = 0; k < this.joints.length; k++) {
                 let joint = 0;
                 for (let i = 1; i < this.T; i++) {
-                    joint += p5.Vector.sub(this.sList[this.jointList[k]][i],
-                        this.sList[this.jointList[k]][i - 1]).mag();
+                    joint += p5.Vector.sub(this.sList[this.joints[k]][i],
+                        this.sList[this.joints[k]][i - 1]).mag();
                 }
-                joint = joint / (p5.Vector.sub(this.sList[this.jointList[k]][0],
-                    this.sList[this.jointList[k]][this.T - 1]).mag() + Number.EPSILON);
-                this.sPartial += 1.0 * joint;
+                joint = joint / (p5.Vector.sub(this.sList[this.joints[k]][0],
+                    this.sList[this.joints[k]][this.T - 1]).mag() + Number.EPSILON);
+                this.sPartial += this.alpha[k] * joint;
             }
             this.sCounter = 0;
             this.s = this.sPartial;
@@ -113,8 +117,8 @@ class Effort {
             return 0;
         }
 
-        for (let k = 0; k < this.jointList.length; k++) {
-            this.fPartial += 1.0 * jerk[this.jointList[k]] / this.T;
+        for (let k = 0; k < this.joints.length; k++) {
+            this.fPartial += this.alpha[k] * jerk[this.joints[k]] / this.T;
         }
 
         this.fCounter++;
