@@ -6,9 +6,9 @@ let dt = 0.02;
 let k = new Kinematic(dt);
 
 let jointList = {
-    "head": 1,
-    "rightHand": 1.1,
-    "leftHand": 1.2,
+    "head": 0.5,
+    "rightHand": 0.5,
+    "leftHand": 0.5,
 };
 let T = 10;
 let e = new Effort(T, jointList);
@@ -30,15 +30,28 @@ function setup() {
     frameRate(100);
 
     for (let k = 0; k < e.joints.length; k++) {
-        var button = createElement('div', '<button>' + e.alpha[k].toFixed(2) + ' * ' + e.joints[k] + '</button>');
+        var button = createElement('button', e.alpha[k].toFixed(2) + ' * ' + e.joints[k]);
+        button.attribute('data-idx', k);
+        button.attribute('data-value', e.alpha[k].toFixed(2));
+        button.mousePressed(updateAlpha);
+
         button.parent('jointlist');
     }
 
     select('#T').html('dt=' + dt + ' T=' + T);
 
     print(posedata.getRowCount() + ' data points');
+}
 
-    print(e);
+
+function updateAlpha() {
+    let alpha = parseFloat(this.attribute('data-value')) + 0.25;
+    if (alpha > 1) {
+        alpha = 0;
+    }
+    e.updateAlpha(e.joints[this.attribute('data-idx')], alpha)
+    this.attribute('data-value', alpha.toFixed(2));
+    this.html(alpha.toFixed(2) + ' * ' + e.joints[this.attribute('data-idx')]);
 }
 
 
