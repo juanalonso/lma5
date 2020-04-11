@@ -9,6 +9,9 @@ let options = {
 }
 
 
+let smoothValue = {};
+let SNAP_MULTIPLIER = 0.02;
+
 let dt = 0.8;
 let k = new Kinematic(dt);
 
@@ -70,7 +73,40 @@ function updateAlpha() {
 }
 
 
+function responsiveAnalogRead(newVal, smoothVal) {
+
+    var diff = p5.Vector.sub(Utils.vectorFromKeypoint(newVal), Utils.vectorFromKeypoint(smoothVal));
+
+    var x = smoothVal.x + diff.x * snapCurve(diff.x);
+    var y = smoothVal.y + diff.y * snapCurve(diff.y);
+    var z = smoothVal.z + diff.z * snapCurve(diff.z);
+
+    return { "x": x, "y": y, "z": z };
+}
+
+var snapCurve = function(x) {
+    var y = 1 / (abs(x * SNAP_MULTIPLIER) + 1);
+    y = (1 - y) * 2;
+    if (y > 1) {
+        return 1;
+    }
+    return y;
+};
+
+
 function draw() {
+
+    if (typeof pose !== 'undefined') {
+
+        let keys = Object.keys(pose);
+
+        for (let j = 0; j < keys.length; j++) {
+            if (typeof smoothValue[keys[j]] === 'undefined') {
+                smoothValue[keys[j]] = pose[keys[j]];
+            }
+            smoothValue[keys[j]] = responsiveAnalogRead(pose[keys[j]], smoothValue[keys[j]]);
+        }
+    }
 
     k.addPose(pose);
 
@@ -92,18 +128,19 @@ function draw() {
     // image(video, 0, 0, width, height);
 
     if (typeof pose !== 'undefined') {
-        drawAvatar(pose);
+        drawAvatar(smoothValue);
         if (Object.keys(velocity).length !== 0) {
             drawKeypoints(pose, velocity);
+            drawKeypoints(smoothValue, velocity);
         }
     }
+
 
 }
 
 
 function modelReady() {
     select('#status').html('');
-    //video.time(74);
     video.loop();
 }
 
@@ -121,9 +158,7 @@ function drawKeypoints(pose, v) {
             continue;
         }
         let keypoint = pose[keys[f]];
-        //if (keypoint.score > 0.2) {
         circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
-        //}
     }
 }
 
