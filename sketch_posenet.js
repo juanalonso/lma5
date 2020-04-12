@@ -10,7 +10,6 @@ let options = {
 
 
 let smoothValue = {};
-let SNAP_MULTIPLIER = 0.02;
 
 let dt = 0.8;
 let k = new Kinematic(dt);
@@ -73,29 +72,10 @@ function updateAlpha() {
 }
 
 
-function responsiveAnalogRead(newVal, smoothVal) {
-
-    var diff = p5.Vector.sub(Utils.vectorFromKeypoint(newVal), Utils.vectorFromKeypoint(smoothVal));
-
-    var x = smoothVal.x + diff.x * snapCurve(diff.x);
-    var y = smoothVal.y + diff.y * snapCurve(diff.y);
-    var z = smoothVal.z + diff.z * snapCurve(diff.z);
-
-    return { "x": x, "y": y, "z": z };
-}
-
-var snapCurve = function(x) {
-    var y = 1 / (abs(x * SNAP_MULTIPLIER) + 1);
-    y = (1 - y) * 2;
-    if (y > 1) {
-        return 1;
-    }
-    return y;
-};
-
 
 function draw() {
 
+    let smoothPose;
     if (typeof pose !== 'undefined') {
 
         let keys = Object.keys(pose);
@@ -104,11 +84,14 @@ function draw() {
             if (typeof smoothValue[keys[j]] === 'undefined') {
                 smoothValue[keys[j]] = pose[keys[j]];
             }
-            smoothValue[keys[j]] = responsiveAnalogRead(pose[keys[j]], smoothValue[keys[j]]);
+            smoothValue[keys[j]] = Utils.responsiveAnalogRead(pose[keys[j]], smoothValue[keys[j]]);
         }
+
+        smoothPose = JSON.parse(JSON.stringify(smoothValue));
     }
 
-    k.addPose(pose);
+
+    k.addPose(smoothPose);
 
     //Kinematic
     [velocity, acceleration, jerk] = k.getKinematic();
@@ -116,7 +99,7 @@ function draw() {
     //Effort
     let weight = e.weight(velocity);
     let time = e.time(acceleration);
-    let space = e.space(pose);
+    let space = e.space(smoothPose);
     let flow = e.flow(jerk);
 
     select('#weight-effort').html(weight.toFixed(2));
@@ -127,11 +110,11 @@ function draw() {
     background(248);
     // image(video, 0, 0, width, height);
 
-    if (typeof pose !== 'undefined') {
+    if (typeof smoothPose !== 'undefined') {
         drawAvatar(smoothValue);
         if (Object.keys(velocity).length !== 0) {
-            drawKeypoints(pose, velocity);
-            drawKeypoints(smoothValue, velocity);
+            drawKeypoints(smoothPose, velocity,255);
+            drawKeypoints(pose, velocity,127);
         }
     }
 
@@ -145,9 +128,9 @@ function modelReady() {
 }
 
 
-function drawKeypoints(pose, v) {
+function drawKeypoints(pose, v, opacity) {
 
-    fill(55);
+    fill(55, opacity);
     noStroke();
 
     let keys = Object.keys(pose);

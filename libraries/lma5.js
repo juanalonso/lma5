@@ -3,8 +3,14 @@
 //@TODO: error if dimensions is not valid
 //@TODO: error if length alpha != length joinlist
 //@TODO: error in updateAlpha if joint is not valid
+//@TODO: check NaN issue with z value
 
-
+/*
+Filtering functions are based on the work of Damien Clarke
+for denoising arduino analog inputs.
+https://github.com/dxinteractive/ResponsiveAnalogRead
+Copyright (c) 2016, Damien Clarke
+*/
 class Effort {
 
     constructor(T = 5, jointList) {
@@ -220,5 +226,29 @@ class Utils {
 
         return o;
     }
+
+
+    static responsiveAnalogRead(newVal, smoothVal) {
+
+        let SNAP_MULTIPLIER = 0.02;
+
+        function snapCurve(x) {
+            var y = 1 / (abs(x * SNAP_MULTIPLIER) + 1);
+            y = (1 - y) * 2;
+            if (y > 1) {
+                return 1;
+            }
+            return y;
+        }
+
+        var diff = p5.Vector.sub(Utils.vectorFromKeypoint(newVal), Utils.vectorFromKeypoint(smoothVal));
+
+        var x = smoothVal.x + diff.x * snapCurve(diff.x);
+        var y = smoothVal.y + diff.y * snapCurve(diff.y);
+        var z = smoothVal.z + diff.z * snapCurve(diff.z);
+
+        return { "x": x, "y": y, "z": z };
+    }
+
 
 }
