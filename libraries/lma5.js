@@ -3,7 +3,6 @@
 //@TODO: error if dimensions is not valid
 //@TODO: error if length alpha != length joinlist
 //@TODO: error in updateAlpha if joint is not valid
-//@TODO: check NaN issue with z value
 
 /*
 Filtering functions are based on the work of Damien Clarke
@@ -11,6 +10,82 @@ for denoising arduino analog inputs.
 https://github.com/dxinteractive/ResponsiveAnalogRead
 Copyright (c) 2016, Damien Clarke
 */
+
+class Kinematic {
+
+
+    constructor(dt = 0.8) {
+        this.dt = dt;
+        this.maxPoses = 5;
+        this.poseList = [];
+        this.smoothPoseList = [];
+        this.isFirstRun = true;
+        this.smoothValues = {};
+    }
+
+    addPose(pose) {
+
+        if (typeof pose !== 'undefined') {
+
+            let keys = Object.keys(pose);
+
+            if (this.isFirstRun) {
+                for (let j = 0; j < keys.length; j++) {
+                    this.smoothValues[keys[j]] = pose[keys[j]];
+                }
+                this.isFirstRun = false;
+            } else {
+                for (let j = 0; j < keys.length; j++) {
+                    this.smoothValues[keys[j]] = Utils.getSmoothedPose(pose[keys[j]], this.smoothValues[keys[j]]);
+                }
+            }
+
+            let smoothedPose = JSON.parse(JSON.stringify(this.smoothValues));
+
+            this.poseList.unshift(pose);
+            this.smoothPoseList.unshift(smoothedPose);
+
+            if (this.poseList.length > this.maxPoses) {
+                this.poseList.pop();
+                this.smoothPoseList.pop();
+            }
+
+            return smoothedPose;
+        }
+    }
+
+    getKinematic(smoothed = true) {
+
+        if (this.poseList.length < this.maxPoses) {
+            return [{}, {}, {}];
+        }
+
+        let keys = Object.keys(this.poseList[0]);
+        let v = {}
+        let a = {}
+        let j = {}
+
+        var list = smoothed ? this.smoothPoseList : this.poseList;
+
+        for (let t = 0; t < keys.length; t++) {
+
+            let xt0 = Utils.vectorFromKeypoint(list[0][keys[t]]);
+            let xt1 = Utils.vectorFromKeypoint(list[1][keys[t]]);
+            let xt2 = Utils.vectorFromKeypoint(list[2][keys[t]]);
+            let xt3 = Utils.vectorFromKeypoint(list[3][keys[t]]);
+            let xt4 = Utils.vectorFromKeypoint(list[4][keys[t]]);
+
+            v[keys[t]] = p5.Vector.sub(xt1, xt3).div(this.dt * 2).mag();
+            a[keys[t]] = p5.Vector.sub(xt1, xt2).sub(xt2).add(xt3).div(this.dt * this.dt).mag();
+            j[keys[t]] = p5.Vector.sub(xt0, xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * this.dt * this.dt * this.dt).mag();
+        }
+        return [v, a, j];
+    }
+
+}
+
+
+
 class Effort {
 
     constructor(T = 5, jointList) {
@@ -144,63 +219,18 @@ class Effort {
 
 }
 
-class Kinematic {
 
-    constructor(dt = 0.8) {
-        this.dt = dt;
-        this.maxPoses = 5;
-        this.poseList = [];
-    }
-
-    addPose(pose) {
-
-        if (typeof pose !== 'undefined') {
-
-            this.poseList.unshift(pose);
-
-            if (this.poseList.length > this.maxPoses) {
-                this.poseList.pop();
-            }
-        }
-    }
-
-    getKinematic() {
-
-        if (this.poseList.length < this.maxPoses) {
-            return [{}, {}, {}];
-        }
-
-        let keys = Object.keys(this.poseList[0]);
-        let v = {}
-        let a = {}
-        let j = {}
-
-        for (let t = 0; t < keys.length; t++) {
-
-            let xt0 = Utils.vectorFromKeypoint(this.poseList[0][keys[t]]);
-            let xt1 = Utils.vectorFromKeypoint(this.poseList[1][keys[t]]);
-            let xt2 = Utils.vectorFromKeypoint(this.poseList[2][keys[t]]);
-            let xt3 = Utils.vectorFromKeypoint(this.poseList[3][keys[t]]);
-            let xt4 = Utils.vectorFromKeypoint(this.poseList[4][keys[t]]);
-
-            v[keys[t]] = p5.Vector.sub(xt1, xt3).div(this.dt * 2).mag();
-            a[keys[t]] = p5.Vector.sub(xt1, xt2).sub(xt2).add(xt3).div(this.dt * this.dt).mag();
-            j[keys[t]] = p5.Vector.sub(xt0, xt1).sub(xt1).add(xt3).add(xt3).sub(xt4).div(2 * this.dt * this.dt * this.dt).mag();
-        }
-        return [v, a, j];
-    }
-
-}
 
 class Utils {
 
     static vectorFromKeypoint(kp) {
         let z = 0;
-        if (typeof kp.z !== 'undefined') {
+        if (typeof kp.z !== 'undefined' /*&& !isNaN(kp.z)*/ ) {
             z = kp.z;
         }
         return createVector(kp.x, kp.y, z);
     }
+
 
     static fromPoseNet(results) {
         if (typeof results[0] !== 'undefined') {
@@ -210,6 +240,7 @@ class Utils {
             return pose;
         }
     }
+
 
     static fromTSV(row, jointList) {
 
@@ -228,9 +259,7 @@ class Utils {
     }
 
 
-    static responsiveAnalogRead(newVal, smoothVal) {
-
-        let SNAP_MULTIPLIER = 0.02;
+    static getSmoothedPose(currVal, prevVal, SNAP_MULTIPLIER = 0.02) {
 
         function snapCurve(x) {
             var y = 1 / (abs(x * SNAP_MULTIPLIER) + 1);
@@ -241,14 +270,13 @@ class Utils {
             return y;
         }
 
-        var diff = p5.Vector.sub(Utils.vectorFromKeypoint(newVal), Utils.vectorFromKeypoint(smoothVal));
+        var diff = p5.Vector.sub(Utils.vectorFromKeypoint(currVal), Utils.vectorFromKeypoint(prevVal));
 
-        var x = smoothVal.x + diff.x * snapCurve(diff.x);
-        var y = smoothVal.y + diff.y * snapCurve(diff.y);
-        var z = smoothVal.z + diff.z * snapCurve(diff.z);
+        var x = prevVal.x + diff.x * snapCurve(diff.x);
+        var y = prevVal.y + diff.y * snapCurve(diff.y);
+        var z = prevVal.z + diff.z * snapCurve(diff.z);
 
         return { "x": x, "y": y, "z": z };
     }
-
 
 }
