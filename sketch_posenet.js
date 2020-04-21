@@ -61,40 +61,12 @@ function setup() {
 }
 
 
-function updateAlpha() {
-    let alpha = parseFloat(this.attribute('data-value')) + 0.25;
-    if (alpha > 1) {
-        alpha = 0;
-    }
-    e.updateAlpha(e.joints[this.attribute('data-idx')], alpha)
-    this.attribute('data-value', alpha.toFixed(2));
-    this.html(alpha.toFixed(2) + ' * ' + e.joints[this.attribute('data-idx')]);
-}
-
-
-
 function draw() {
 
-    let smoothPose;
-    if (typeof pose !== 'undefined') {
-
-        let keys = Object.keys(pose);
-
-        for (let j = 0; j < keys.length; j++) {
-            if (typeof smoothValue[keys[j]] === 'undefined') {
-                smoothValue[keys[j]] = pose[keys[j]];
-            }
-            smoothValue[keys[j]] = Utils.responsiveAnalogRead(pose[keys[j]], smoothValue[keys[j]]);
-        }
-
-        smoothPose = JSON.parse(JSON.stringify(smoothValue));
-    }
-
-
-    k.addPose(smoothPose);
+    let smoothPose = k.addPose(pose);
 
     //Kinematic
-    [velocity, acceleration, jerk] = k.getKinematic();
+    [velocity, acceleration, jerk] = k.getKinematic(true);
 
     //Effort
     let weight = e.weight(velocity);
@@ -108,17 +80,15 @@ function draw() {
     select('#flow-effort').html(flow.toFixed(2));
 
     background(248);
-    // image(video, 0, 0, width, height);
+    //image(video, 0, 0, width, height);
 
     if (typeof smoothPose !== 'undefined') {
-        drawAvatar(smoothValue);
+        drawAvatar(smoothPose);
         if (Object.keys(velocity).length !== 0) {
-            drawKeypoints(smoothPose, velocity,255);
-            drawKeypoints(pose, velocity,127);
+            drawKeypoints(pose, velocity, 127);
+            drawKeypoints(smoothPose, velocity, 255);
         }
     }
-
-
 }
 
 
@@ -128,28 +98,28 @@ function modelReady() {
 }
 
 
-function drawKeypoints(pose, v, opacity) {
+function drawKeypoints(p, v, opacity) {
 
     fill(55, opacity);
     noStroke();
 
-    let keys = Object.keys(pose);
+    let keys = Object.keys(p);
     for (let f = 0; f < keys.length; f++) {
         if (keys[f] == "leftEar" || keys[f] == "rightEar" ||
             keys[f] == "leftEye" || keys[f] == "rightEye" ||
             keys[f] == "nose") {
             continue;
         }
-        let keypoint = pose[keys[f]];
+        let keypoint = p[keys[f]];
         circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
     }
 }
 
 
-function drawAvatar(pose, opacity) {
+function drawAvatar(p, opacity) {
 
-    let le = Utils.vectorFromKeypoint(pose.leftEar);
-    let re = Utils.vectorFromKeypoint(pose.rightEar);
+    let le = Utils.vectorFromKeypoint(p.leftEar);
+    let re = Utils.vectorFromKeypoint(p.rightEar);
     let center = p5.Vector.sub(le, re).div(2).add(re);
     let angle = p5.Vector.sub(le, re).heading();
 
@@ -157,82 +127,82 @@ function drawAvatar(pose, opacity) {
     strokeWeight(4);
     stroke(100, 200, 100, opacity);
 
-    curve(pose.rightShoulder.x, pose.rightShoulder.y,
-        pose.leftShoulder.x, pose.leftShoulder.y,
-        pose.leftHip.x, pose.leftHip.y,
-        pose.rightHip.x, pose.rightHip.y);
+    curve(p.rightShoulder.x, p.rightShoulder.y,
+        p.leftShoulder.x, p.leftShoulder.y,
+        p.leftHip.x, p.leftHip.y,
+        p.rightHip.x, p.rightHip.y);
 
-    curve(pose.leftShoulder.x, pose.leftShoulder.y,
-        pose.leftHip.x, pose.leftHip.y,
-        pose.rightHip.x, pose.rightHip.y,
-        pose.rightShoulder.x, pose.rightShoulder.y);
+    curve(p.leftShoulder.x, p.leftShoulder.y,
+        p.leftHip.x, p.leftHip.y,
+        p.rightHip.x, p.rightHip.y,
+        p.rightShoulder.x, p.rightShoulder.y);
 
-    curve(pose.leftHip.x, pose.leftHip.y,
-        pose.rightHip.x, pose.rightHip.y,
-        pose.rightShoulder.x, pose.rightShoulder.y,
-        pose.leftShoulder.x, pose.leftShoulder.y);
+    curve(p.leftHip.x, p.leftHip.y,
+        p.rightHip.x, p.rightHip.y,
+        p.rightShoulder.x, p.rightShoulder.y,
+        p.leftShoulder.x, p.leftShoulder.y);
     curve(
-        pose.rightHip.x, pose.rightHip.y,
-        pose.rightShoulder.x, pose.rightShoulder.y,
-        pose.leftShoulder.x, pose.leftShoulder.y,
-        pose.leftHip.x, pose.leftHip.y);
+        p.rightHip.x, p.rightHip.y,
+        p.rightShoulder.x, p.rightShoulder.y,
+        p.leftShoulder.x, p.leftShoulder.y,
+        p.leftHip.x, p.leftHip.y);
 
 
 
     stroke(255, 100, 100, opacity);
 
-    curve(pose.rightWrist.x, pose.rightWrist.y,
-        pose.rightWrist.x, pose.rightWrist.y,
-        pose.rightElbow.x, pose.rightElbow.y,
-        pose.rightShoulder.x, pose.rightShoulder.y);
+    curve(p.rightWrist.x, p.rightWrist.y,
+        p.rightWrist.x, p.rightWrist.y,
+        p.rightElbow.x, p.rightElbow.y,
+        p.rightShoulder.x, p.rightShoulder.y);
 
-    curve(pose.rightWrist.x, pose.rightWrist.y,
-        pose.rightElbow.x, pose.rightElbow.y,
-        pose.rightShoulder.x, pose.rightShoulder.y,
-        pose.leftShoulder.x, pose.leftShoulder.y);
+    curve(p.rightWrist.x, p.rightWrist.y,
+        p.rightElbow.x, p.rightElbow.y,
+        p.rightShoulder.x, p.rightShoulder.y,
+        p.leftShoulder.x, p.leftShoulder.y);
 
-    curve(pose.rightElbow.x, pose.rightElbow.y,
-        pose.rightShoulder.x, pose.rightShoulder.y,
-        pose.leftShoulder.x, pose.leftShoulder.y,
-        pose.leftElbow.x, pose.leftElbow.y);
+    curve(p.rightElbow.x, p.rightElbow.y,
+        p.rightShoulder.x, p.rightShoulder.y,
+        p.leftShoulder.x, p.leftShoulder.y,
+        p.leftElbow.x, p.leftElbow.y);
 
-    curve(pose.rightShoulder.x, pose.rightShoulder.y,
-        pose.leftShoulder.x, pose.leftShoulder.y,
-        pose.leftElbow.x, pose.leftElbow.y,
-        pose.leftWrist.x, pose.leftWrist.y);
+    curve(p.rightShoulder.x, p.rightShoulder.y,
+        p.leftShoulder.x, p.leftShoulder.y,
+        p.leftElbow.x, p.leftElbow.y,
+        p.leftWrist.x, p.leftWrist.y);
 
-    curve(pose.leftShoulder.x, pose.leftShoulder.y,
-        pose.leftElbow.x, pose.leftElbow.y,
-        pose.leftWrist.x, pose.leftWrist.y,
-        pose.leftWrist.x, pose.leftWrist.y);
+    curve(p.leftShoulder.x, p.leftShoulder.y,
+        p.leftElbow.x, p.leftElbow.y,
+        p.leftWrist.x, p.leftWrist.y,
+        p.leftWrist.x, p.leftWrist.y);
 
     //
     //
     //
-    curve(pose.rightAnkle.x, pose.rightAnkle.y,
-        pose.rightAnkle.x, pose.rightAnkle.y,
-        pose.rightKnee.x, pose.rightKnee.y,
-        pose.rightHip.x, pose.rightHip.y);
+    curve(p.rightAnkle.x, p.rightAnkle.y,
+        p.rightAnkle.x, p.rightAnkle.y,
+        p.rightKnee.x, p.rightKnee.y,
+        p.rightHip.x, p.rightHip.y);
 
-    curve(pose.rightAnkle.x, pose.rightAnkle.y,
-        pose.rightKnee.x, pose.rightKnee.y,
-        pose.rightHip.x, pose.rightHip.y,
-        pose.leftHip.x, pose.leftHip.y);
+    curve(p.rightAnkle.x, p.rightAnkle.y,
+        p.rightKnee.x, p.rightKnee.y,
+        p.rightHip.x, p.rightHip.y,
+        p.leftHip.x, p.leftHip.y);
 
-    curve(pose.rightKnee.x, pose.rightKnee.y,
-        pose.rightHip.x, pose.rightHip.y,
-        pose.leftHip.x, pose.leftHip.y,
-        pose.leftKnee.x, pose.leftKnee.y);
+    curve(p.rightKnee.x, p.rightKnee.y,
+        p.rightHip.x, p.rightHip.y,
+        p.leftHip.x, p.leftHip.y,
+        p.leftKnee.x, p.leftKnee.y);
 
-    curve(pose.rightHip.x, pose.rightHip.y,
-        pose.leftHip.x, pose.leftHip.y,
-        pose.leftKnee.x, pose.leftKnee.y,
-        pose.leftAnkle.x, pose.leftAnkle.y);
+    curve(p.rightHip.x, p.rightHip.y,
+        p.leftHip.x, p.leftHip.y,
+        p.leftKnee.x, p.leftKnee.y,
+        p.leftAnkle.x, p.leftAnkle.y);
 
-    curve(pose.leftHip.x, pose.leftHip.y,
-        pose.leftKnee.x, pose.leftKnee.y,
-        pose.leftAnkle.x, pose.leftAnkle.y,
-        pose.leftAnkle.x, pose.leftAnkle.y);
+    curve(p.leftHip.x, p.leftHip.y,
+        p.leftKnee.x, p.leftKnee.y,
+        p.leftAnkle.x, p.leftAnkle.y,
+        p.leftAnkle.x, p.leftAnkle.y);
 
 
 
@@ -248,6 +218,17 @@ function drawAvatar(pose, opacity) {
     fill(55, opacity);
     noStroke();
 
-    circle(pose.leftEye.x, pose.leftEye.y, 6);
-    circle(pose.rightEye.x, pose.rightEye.y, 6);
+    circle(p.leftEye.x, p.leftEye.y, 6);
+    circle(p.rightEye.x, p.rightEye.y, 6);
+}
+
+
+function updateAlpha() {
+    let alpha = parseFloat(this.attribute('data-value')) + 0.25;
+    if (alpha > 1) {
+        alpha = 0;
+    }
+    e.updateAlpha(e.joints[this.attribute('data-idx')], alpha)
+    this.attribute('data-value', alpha.toFixed(2));
+    this.html(alpha.toFixed(2) + ' * ' + e.joints[this.attribute('data-idx')]);
 }
