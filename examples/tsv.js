@@ -1,9 +1,11 @@
 let pose;
 let posedata;
 
+let smoothValue = {};
 
 let dt = 0.02;
 let k = new Kinematic(dt);
+
 
 let jointList = {
     "head": 0.5,
@@ -24,34 +26,22 @@ function preload() {
 
 function setup() {
 
+    frameRate(100);
+
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
 
-    frameRate(100);
+    select('#T').html('dt=' + dt + ' T=' + T);
+    print(posedata.getRowCount() + ' data points');
 
     for (let k = 0; k < e.joints.length; k++) {
         var button = createElement('button', e.alpha[k].toFixed(2) + ' * ' + e.joints[k]);
         button.attribute('data-idx', k);
         button.attribute('data-value', e.alpha[k].toFixed(2));
         button.mousePressed(updateAlpha);
-
         button.parent('jointlist');
     }
 
-    select('#T').html('dt=' + dt + ' T=' + T);
-
-    print(posedata.getRowCount() + ' data points');
-}
-
-
-function updateAlpha() {
-    let alpha = parseFloat(this.attribute('data-value')) + 0.25;
-    if (alpha > 1) {
-        alpha = 0;
-    }
-    e.updateAlpha(e.joints[this.attribute('data-idx')], alpha)
-    this.attribute('data-value', alpha.toFixed(2));
-    this.html(alpha.toFixed(2) + ' * ' + e.joints[this.attribute('data-idx')]);
 }
 
 
@@ -82,12 +72,25 @@ function draw() {
 
     background(248);
 
-    drawAvatar(pose);
+    drawAvatar(pose,255);
 
 }
 
 
-function drawAvatar(pose, opacity) {
+function updateAlpha() {
+    let alpha = parseFloat(this.attribute('data-value')) + 0.25;
+    if (alpha > 1) {
+        alpha = 0;
+    }
+    e.updateAlpha(e.joints[this.attribute('data-idx')], alpha)
+    this.attribute('data-value', alpha.toFixed(2));
+    this.html(alpha.toFixed(2) + ' * ' + e.joints[this.attribute('data-idx')]);
+}
+
+
+function drawAvatar(p, opacity) {
+
+    push();
 
     translate(width / 2, height * 1.5);
     scale(400, -400);
@@ -95,10 +98,12 @@ function drawAvatar(pose, opacity) {
     noFill();
 
     stroke(100, 200, 100, opacity);
-    circle(pose.rightHand.x, pose.rightHand.z, 0.035);
-    circle(pose.leftHand.x, pose.leftHand.z, 0.035);
+    circle(p.rightHand.x, p.rightHand.z, 0.035);
+    circle(p.leftHand.x, p.leftHand.z, 0.035);
 
     stroke(255, 100, 100, opacity);
-    ellipse(pose.head.x, pose.head.z, 0.075, 0.075 * 1.35);
+    ellipse(p.head.x, p.head.z, 0.075, 0.075 * 1.35);
+
+    pop();
 
 }

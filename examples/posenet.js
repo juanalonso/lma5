@@ -65,7 +65,7 @@ function draw() {
     let smoothPose = k.addPose(pose);
 
     //Kinematic
-    [velocity, acceleration, jerk] = k.getKinematic(true);
+    [velocity, acceleration, jerk] = k.getKinematic();
 
     //Effort
     let weight = e.weight(velocity);
