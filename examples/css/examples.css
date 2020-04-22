@@ -1,0 +1,16 @@
+ :root {
+     --universal-margin: .25rem;
+     --universal-padding: .5rem;
+     --back-color: #f0f0f0;
+ }
+
+ .card.small h2 {
+     margin-top: -9px;
+ }
+
+ button {
+    font-size: calc(0.75rem * var(--heading-ratio));
+    width: 100%;
+    text-align: left;
+    max-width: 240px;
+ }
