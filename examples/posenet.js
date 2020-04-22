@@ -29,24 +29,20 @@ let e = new Effort(T, jointList);
 
 function preload() {
     video = createVideo(['data/test_posenet.mp4']);
+    video.volume(0);
+    video.hide();
 }
 
 
 function setup() {
 
+    frameRate(60);
+
     var canvas = createCanvas(720, 480);
     canvas.parent('canvas-placeholder');
 
-    video.volume(0);
-    video.hide();
-
+    select('#T').html("dt=" + dt + " T=" + T);
     select('#status').html('Loading model...');
-    poseNet = ml5.poseNet(video, modelReady, options);
-    poseNet.on('pose', function(results) {
-        pose = Utils.fromPoseNet(results);
-    });
-
-    frameRate(60);
 
     for (let k = 0; k < e.joints.length; k++) {
         var button = createElement('button', e.alpha[k].toFixed(2) + ' * ' + e.joints[k]);
@@ -56,7 +52,10 @@ function setup() {
         button.parent('jointlist');
     }
 
-    select('#T').html("dt=" + dt + " T=" + T);
+    poseNet = ml5.poseNet(video, modelReady, options);
+    poseNet.on('pose', function(results) {
+        pose = Utils.fromPoseNet(results);
+    });
 
 }
 

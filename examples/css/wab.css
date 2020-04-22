@@ -4,18 +4,13 @@
      --back-color: #f0f0f0;
  }
 
- .card.small {
-     margin-bottom: 18px;
- }
-
- .card.small h3 {
-     margin-bottom: -6px;
- }
-
- .card.small h1 {
-     margin-bottom: 4px;
+ .card.small h2 {
+     margin-top: -9px;
  }
 
  button {
-    font-size: calc(1rem * var(--heading-ratio) );
+    font-size: calc(0.75rem * var(--heading-ratio));
+    width: 100%;
+    text-align: left;
+    max-width: 240px;
  }
