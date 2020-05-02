@@ -21,8 +21,8 @@ class Vehicle {
         //this.applyForce(flee);
 
         this.applyForce(this.arrive(this.target));
-        this.applyForce(this.flee(v1));
-        this.applyForce(this.flee(v2));
+        this.applyForce(this.flee(v1).mult(10));
+        this.applyForce(this.flee(v2).mult(10));
 
         this.vel.add(this.acc);
         this.pos.add(this.vel);
@@ -57,10 +57,10 @@ class Vehicle {
         var dist = desired.mag();
 
         if (dist < 100) {
-            desired.setMag(this.maxspeed*2);
+            desired.setMag(this.maxspeed);
             desired.mult(-1);
             var steer = p5.Vector.sub(desired, this.vel);
-            steer.limit(this.maxforce*2);
+            steer.limit(this.maxforce);
             return steer;
         } else {
             return createVector(0, 0);
