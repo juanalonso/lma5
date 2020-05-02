@@ -23,7 +23,7 @@ let T = 10;
 let e = new Effort(T, jointList);
 
 var vehicles = [];
-var MAX_VEHICLES = 500;
+var MAX_VEHICLES = 22 * 22;
 
 function preload() {
     video = createCapture(VIDEO);
@@ -42,7 +42,7 @@ function setup() {
     select('#status').html('Loading model...');
 
     for (var f = 0; f < MAX_VEHICLES; f++) {
-        var vehicle = new Vehicle(Math.random() * width, Math.random() * height, 5);
+        var vehicle = new Vehicle((width / 22) * (f % 22), (height / 22) * Math.floor(f / 22), 5);
         vehicles.push(vehicle);
     }
 
@@ -76,13 +76,13 @@ function draw() {
     translate(video.width, 0);
     scale(-1, 1);
 
-    image(video, 0, 0, 96,72);
+    image(video, 0, 0, 96, 72);
 
     if (typeof smoothPose !== 'undefined') {
         drawAvatar(smoothPose);
         for (var f = 0; f < MAX_VEHICLES; f++) {
-            vehicles[f].target = Utils.vectorFromKeypoint(f % 2 == 0 ? smoothPose.leftWrist : smoothPose.rightWrist);
-            vehicles[f].update();
+            //vehicles[f].target = Utils.vectorFromKeypoint(f % 2 == 0 ? smoothPose.leftWrist : smoothPose.rightWrist);
+            vehicles[f].update(Utils.vectorFromKeypoint(smoothPose.leftWrist),  Utils.vectorFromKeypoint(smoothPose.rightWrist));
             vehicles[f].draw();
         }
     }
