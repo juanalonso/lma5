@@ -22,8 +22,9 @@ let jointList = {
 let T = 10;
 let e = new Effort(T, jointList);
 
-var vehicles = [];
-var MAX_VEHICLES = 22 * 22;
+var fireflies = [];
+var MAX_FIREFLIES = 10;
+
 
 function preload() {
     video = createCapture(VIDEO);
@@ -41,9 +42,13 @@ function setup() {
 
     select('#status').html('Loading model...');
 
-    for (var f = 0; f < MAX_VEHICLES; f++) {
-        var vehicle = new Vehicle((width / 22) * (f % 22), (height / 22) * Math.floor(f / 22), 5);
-        vehicles.push(vehicle);
+    for (var f = 0; f < MAX_FIREFLIES; f++) {
+        var firefly = new Vehicle(random(width), random(height),
+            random(2, 7),
+            random(0.05, 0.5),
+            random(2, 4),
+            color(random(80, 180), 255, random(40, 60)));
+        fireflies.push(firefly);
     }
 
     poseNet = ml5.poseNet(video, modelReady, options);
@@ -72,7 +77,7 @@ function draw() {
     select('#space-effort').html(space.toFixed(2));
     select('#flow-effort').html(flow.toFixed(2));
 
-    background(248);
+    background('#101020');
     translate(video.width, 0);
     scale(-1, 1);
 
@@ -80,10 +85,16 @@ function draw() {
 
     if (typeof smoothPose !== 'undefined') {
         drawAvatar(smoothPose);
-        for (var f = 0; f < MAX_VEHICLES; f++) {
-            //vehicles[f].target = Utils.vectorFromKeypoint(f % 2 == 0 ? smoothPose.leftWrist : smoothPose.rightWrist);
-            vehicles[f].update(Utils.vectorFromKeypoint(smoothPose.leftWrist),  Utils.vectorFromKeypoint(smoothPose.rightWrist));
-            vehicles[f].draw();
+        for (f of fireflies) {
+
+            //behaviours
+            f.applyForce(f.wander());
+            f.applyForce(f.bounce());
+            //f.applyForce(f.flee(Utils.vectorFromKeypoint(smoothPose.leftWrist),100).mult(50));
+            //f.applyForce(f.flee(Utils.vectorFromKeypoint(smoothPose.rightWrist),100).mult(50));
+
+            f.update();
+            f.draw();
         }
     }
 
@@ -122,7 +133,7 @@ function drawAvatar(p, opacity) {
     let center = p5.Vector.sub(le, re).div(2).add(re);
     let angle = p5.Vector.sub(le, re).heading();
 
-    noFill();
+    fill('#e0e0e0');
     strokeWeight(4);
     stroke(100, 200, 100, opacity);
 
@@ -146,8 +157,16 @@ function drawAvatar(p, opacity) {
         p.leftShoulder.x, p.leftShoulder.y,
         p.leftHip.x, p.leftHip.y);
 
+    stroke('#e0e0e0');
+    beginShape();
+    vertex(p.rightShoulder.x, p.rightShoulder.y);
+    vertex(p.leftShoulder.x, p.leftShoulder.y);
+    vertex(p.leftHip.x, p.leftHip.y);
+    vertex(p.rightHip.x, p.rightHip.y);
+    endShape(CLOSE);
 
 
+    noFill()
     stroke(255, 100, 100, opacity);
 
     curve(p.rightWrist.x, p.rightWrist.y,
@@ -206,7 +225,7 @@ function drawAvatar(p, opacity) {
 
 
     stroke(255, 100, 100, opacity);
-    noFill();
+    fill('#e0e0e0');
 
     push();
     translate(center.x, center.y);
