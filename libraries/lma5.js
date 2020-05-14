@@ -1,8 +1,4 @@
-//@TODO: check T>= 2 if we use space
 //@TODO: create a namespace
-//@TODO: error if dimensions is not valid
-//@TODO: error if length alpha != length joinlist
-//@TODO: error in updateAlpha if joint is not valid
 
 /*
 Filtering functions are based on the work of Damien Clarke
@@ -122,7 +118,11 @@ class Effort {
     }
 
     updateAlpha(joint, alpha) {
-        this.alpha[this.joints.indexOf(joint)] = alpha;
+        var index = this.joints.indexOf(joint);
+        if(index<0) {
+            throw new Error("lma5:updateAlpha 🤔 joint '"+joint+"' not found.");
+        }
+        this.alpha[index] = alpha;
     }
 
     weight(velocity) {
@@ -168,6 +168,10 @@ class Effort {
     }
 
     space(pose) {
+
+        if (this.T < 2) {
+            throw new Error("lma5:space 🤔 To use the Space descriptor, please set T to a value equal or greater than 2 in 'new Effort(T, jointList)'");
+        }
 
         if (typeof pose === 'undefined') {
             return this.s;
@@ -223,16 +227,16 @@ class Effort {
 
 const Utils = {
 
-    vectorFromKeypoint:function(kp) {
+    vectorFromKeypoint: function(kp) {
         let z = 0;
-        if (typeof kp.z !== 'undefined' /*&& !isNaN(kp.z)*/ ) {
+        if (typeof kp.z !== 'undefined') {
             z = kp.z;
         }
         return createVector(kp.x, kp.y, z);
     },
 
 
-    fromPoseNet:function(results) {
+    fromPoseNet: function(results) {
         if (typeof results[0] !== 'undefined') {
             pose = results[0].pose;
             delete pose.keypoints;
@@ -242,11 +246,16 @@ const Utils = {
     },
 
 
-    fromTSV:function(row, jointList) {
+    fromTSV: function(row, jointList) {
 
         let o = new Object();
 
         let dimensions = row.arr.length / jointList.length;
+
+        if (!Number.isInteger(dimensions)) {
+            throw new Error("lma5:fromTSV 🤔 Please, check that the number of coordinates per row is two or three times the number of joints.");
+        }
+
 
         for (let k = 0; k < jointList.length; k++) {
             o[jointList[k]] = { "x": parseFloat(row.arr[k * dimensions]), "y": parseFloat(row.arr[k * dimensions + 1]) };
@@ -259,7 +268,7 @@ const Utils = {
     },
 
 
-    getSmoothedPose:function(currVal, prevVal, SNAP_MULTIPLIER = 0.02) {
+    getSmoothedPose: function(currVal, prevVal, SNAP_MULTIPLIER = 0.02) {
 
         function snapCurve(x) {
             var y = 1 / (abs(x * SNAP_MULTIPLIER) + 1);
