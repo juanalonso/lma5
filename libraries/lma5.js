@@ -221,28 +221,28 @@ class Effort {
 
 
 
-class Utils {
+const Utils = {
 
-    static vectorFromKeypoint(kp) {
+    vectorFromKeypoint:function(kp) {
         let z = 0;
         if (typeof kp.z !== 'undefined' /*&& !isNaN(kp.z)*/ ) {
             z = kp.z;
         }
         return createVector(kp.x, kp.y, z);
-    }
+    },
 
 
-    static fromPoseNet(results) {
+    fromPoseNet:function(results) {
         if (typeof results[0] !== 'undefined') {
             pose = results[0].pose;
             delete pose.keypoints;
             delete pose.score;
             return pose;
         }
-    }
+    },
 
 
-    static fromTSV(row, jointList) {
+    fromTSV:function(row, jointList) {
 
         let o = new Object();
 
@@ -256,10 +256,10 @@ class Utils {
         }
 
         return o;
-    }
+    },
 
 
-    static getSmoothedPose(currVal, prevVal, SNAP_MULTIPLIER = 0.02) {
+    getSmoothedPose:function(currVal, prevVal, SNAP_MULTIPLIER = 0.02) {
 
         function snapCurve(x) {
             var y = 1 / (abs(x * SNAP_MULTIPLIER) + 1);
