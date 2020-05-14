@@ -22,8 +22,11 @@ let jointList = {
 let T = 10;
 let e = new Effort(T, jointList);
 
-var fireflies = [];
 var MAX_FIREFLIES = 10;
+var fireflies = [];
+
+var MAX_MOTHS = 5;
+var moths = [];
 
 
 function preload() {
@@ -43,12 +46,22 @@ function setup() {
 
     for (var f = 0; f < MAX_FIREFLIES; f++) {
         var firefly = new Vehicle(random(width), random(height),
-            random(2, 7),
+            random(2, 4),
             random(0.05, 0.5),
             random(2, 4),
-            color(random(80, 180), 255, random(40, 60)));
+            color(random(120, 220), 255, random(60, 80)));
         fireflies.push(firefly);
     }
+
+    for (var f = 0; f < MAX_MOTHS; f++) {
+        var moth = new Vehicle(random(width), random(height),
+            random(5, 7),
+            random(0.5, 1),
+            random(8,12),
+            color(random(100, 150)));
+        moths.push(moth);
+    }
+
 
     poseNet = ml5.poseNet(video, modelReady, options);
     poseNet.on('pose', function(results) {
@@ -95,6 +108,19 @@ function draw() {
             f.update();
             f.draw();
         }
+
+        for (m of moths) {
+
+            //behaviours
+            m.applyForce(m.wander());
+            m.applyForce(m.bounce());
+            //m.applyForce(m.flee(Utils.vectorFromKeypoint(smoothPose.leftWrist),100).mult(50));
+            //m.applyForce(m.flee(Utils.vectorFromKeypoint(smoothPose.rightWrist),100).mult(50));
+
+            m.update();
+            m.draw();
+        }
+
     }
 
 
