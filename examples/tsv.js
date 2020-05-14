@@ -32,7 +32,6 @@ function setup() {
     canvas.parent('canvas-placeholder');
 
     select('#T').html('dt=' + dt + ' T=' + T);
-    print(posedata.getRowCount() + ' data points');
 
     for (let k = 0; k < e.joints.length; k++) {
         var button = createElement('button', e.alpha[k].toFixed(2) + ' * ' + e.joints[k]);
