@@ -1,6 +1,6 @@
 class Vehicle {
 
-    constructor(x, y, maxspeed, maxforce, size, color) {
+    constructor(x, y, maxspeed, maxforce, size, color, hasEyes) {
 
         this.maxspeed = maxspeed;
         this.maxforce = maxforce;
@@ -11,6 +11,7 @@ class Vehicle {
 
         this.size = size;
         this.color = color;
+        this.hasEyes = hasEyes;
 
         this.wandertheta = 0;
         this.wanderR = 25; // Radius for our "wander circle"
@@ -120,5 +121,18 @@ class Vehicle {
         noStroke();
         fill(this.color);
         circle(this.pos.x, this.pos.y, this.size);
+        if (this.hasEyes) {
+            fill('#f7d629');
+            stroke(0);
+            strokeWeight(0.5);
+            circle(this.pos.x - 8, this.pos.y - 10, 10);
+            circle(this.pos.x + 8, this.pos.y - 10, 10);
+            fill(0);
+            circle(this.pos.x - 8, this.pos.y - 10, 3);
+            circle(this.pos.x + 8, this.pos.y - 10, 3);
+            triangle(this.pos.x, this.pos.y+5,
+                this.pos.x-2, this.pos.y,
+                this.pos.x+2, this.pos.y)
+        }
     }
 }

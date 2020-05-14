@@ -28,6 +28,9 @@ var fireflies = [];
 var MAX_MOTHS = 5;
 var moths = [];
 
+var MAX_OWLS = 1;
+var owls = [];
+
 
 function preload() {
     video = createCapture(VIDEO);
@@ -46,10 +49,11 @@ function setup() {
 
     for (var f = 0; f < MAX_FIREFLIES; f++) {
         var firefly = new Vehicle(random(width), random(height),
-            random(2, 4),
+            random(1, 2),
             random(0.05, 0.5),
             random(2, 4),
-            color(random(120, 220), 255, random(60, 80)));
+            color(random(120, 220), 255, random(60, 80)), 
+            false);
         fireflies.push(firefly);
     }
 
@@ -58,10 +62,20 @@ function setup() {
             random(5, 7),
             random(0.5, 1),
             random(8,12),
-            color(random(100, 150)));
+            color(random(100, 150)),
+            false);
         moths.push(moth);
     }
 
+    for (var f = 0; f < MAX_OWLS; f++) {
+        var owl = new Vehicle(random(width), random(height),
+            random(5, 7),
+            random(0.5, 1),
+            50,
+            color(255), 
+            true);
+        owls.push(owl);
+    }
 
     poseNet = ml5.poseNet(video, modelReady, options);
     poseNet.on('pose', function(results) {
@@ -98,27 +112,26 @@ function draw() {
     if (typeof smoothPose !== 'undefined') {
         drawAvatar(smoothPose);
         for (f of fireflies) {
-
-            //behaviours
             f.applyForce(f.wander());
             f.applyForce(f.bounce());
-            //f.applyForce(f.flee(Utils.vectorFromKeypoint(smoothPose.leftWrist),100).mult(50));
-            //f.applyForce(f.flee(Utils.vectorFromKeypoint(smoothPose.rightWrist),100).mult(50));
-
             f.update();
             f.draw();
         }
 
         for (m of moths) {
-
-            //behaviours
-            m.applyForce(m.wander());
+            m.applyForce(m.wander().mult(5));
             m.applyForce(m.bounce());
             //m.applyForce(m.flee(Utils.vectorFromKeypoint(smoothPose.leftWrist),100).mult(50));
             //m.applyForce(m.flee(Utils.vectorFromKeypoint(smoothPose.rightWrist),100).mult(50));
-
             m.update();
             m.draw();
+        }
+        for (o of owls) {
+            o.applyForce(o.wander().mult(0.5));
+            o.applyForce(o.arrive(createVector(width-75,50),150));
+            o.applyForce(o.bounce());
+            o.update();
+            o.draw();
         }
 
     }
