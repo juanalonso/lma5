@@ -118,21 +118,33 @@ class Vehicle {
 
 
     draw() {
-        noStroke();
+        if (this.hasEyes) {
+            stroke('#e0e0e0');
+        } else {
+            noStroke();
+        }
         fill(this.color);
         circle(this.pos.x, this.pos.y, this.size);
         if (this.hasEyes) {
-            fill('#f7d629');
-            stroke(0);
-            strokeWeight(0.5);
-            circle(this.pos.x - 8, this.pos.y - 10, 10);
-            circle(this.pos.x + 8, this.pos.y - 10, 10);
-            fill(0);
-            circle(this.pos.x - 8, this.pos.y - 10, 3);
-            circle(this.pos.x + 8, this.pos.y - 10, 3);
-            triangle(this.pos.x, this.pos.y+5,
-                this.pos.x-2, this.pos.y,
-                this.pos.x+2, this.pos.y)
+            noStroke();
+            fill(55);
+            circle(this.pos.x - 9, this.pos.y - 10, 6);
+            circle(this.pos.x + 9, this.pos.y - 10, 6);
+            triangle(this.pos.x, this.pos.y + 6,
+                this.pos.x - 2, this.pos.y-2,
+                this.pos.x + 2, this.pos.y-2)
+
+            //     fill('#f7d629');
+            //     stroke(0);
+            //     strokeWeight(0.5);
+            //     circle(this.pos.x - 8, this.pos.y - 10, 10);
+            //     circle(this.pos.x + 8, this.pos.y - 10, 10);
+            //     fill(0);
+            //     circle(this.pos.x - 8, this.pos.y - 10, 3);
+            //     circle(this.pos.x + 8, this.pos.y - 10, 3);
+            //     triangle(this.pos.x, this.pos.y+5,
+            //         this.pos.x-2, this.pos.y,
+            //         this.pos.x+2, this.pos.y)
         }
     }
 }
