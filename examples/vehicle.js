@@ -59,7 +59,7 @@ class Vehicle {
         var desired = p5.Vector.sub(target, this.pos);
         var dist = desired.mag();
 
-        if (dist < 100) {
+        if (dist < dist_limit) {
             desired.setMag(this.maxspeed);
             desired.mult(-1);
             var steer = p5.Vector.sub(desired, this.vel);
