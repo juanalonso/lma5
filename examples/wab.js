@@ -16,20 +16,32 @@ let k = new Kinematic(dt);
 
 
 let jointList = {
-    "leftWrist": 1,
+    "leftWrist": 0,
     "rightWrist": 1,
 };
-let T = 10;
+let T = 20;
 let e = new Effort(T, jointList);
 
+
+//Fireflies
 var MAX_FIREFLIES = 10;
 var fireflies = [];
 
-var MAX_MOTHS = 5;
+
+//Moths
+var MAX_MOTHS = 10;
 var moths = [];
 
+var hasLight = false;
+var lightRadius = 25;
+var lightBounce = 3;
+var lightCounter = 0;
+var dangerDistance = 75;
+
+//Owls
 var MAX_OWLS = 1;
 var owls = [];
+
 
 
 function preload() {
@@ -52,7 +64,7 @@ function setup() {
             random(1, 2),
             random(0.05, 0.5),
             random(2, 4),
-            color(random(120, 220), 255, random(60, 80)), 
+            color(random(120, 220), 255, random(60, 80)),
             false);
         fireflies.push(firefly);
     }
@@ -61,8 +73,8 @@ function setup() {
         var moth = new Vehicle(random(width), random(height),
             random(5, 7),
             random(0.5, 1),
-            random(8,12),
-            color(random(100, 150)),
+            random(8, 12),
+            color(random(150, 190)),
             false);
         moths.push(moth);
     }
@@ -72,7 +84,7 @@ function setup() {
             random(5, 7),
             random(0.5, 1),
             50,
-            color(255), 
+            color(255),
             true);
         owls.push(owl);
     }
@@ -110,6 +122,11 @@ function draw() {
     image(video, 0, 0, 96, 72);
 
     if (typeof smoothPose !== 'undefined') {
+
+        if (lightCounter > 0) {
+            lightCounter--;
+        }
+
         drawAvatar(smoothPose);
         for (f of fireflies) {
             f.applyForce(f.wander());
@@ -118,24 +135,43 @@ function draw() {
             f.draw();
         }
 
+        let rightWristVector = Utils.vectorFromKeypoint(smoothPose.rightWrist);
+
         for (m of moths) {
-            m.applyForce(m.wander().mult(5));
+            if (!hasLight) {
+                let fleeForce = m.flee(rightWristVector, dangerDistance);
+                if (fleeForce.x == 0 && fleeForce.y == 0) {
+                    //Not fleeing, just wandering around
+                    m.applyForce(m.wander().mult(5));
+                } else {
+                    //No wandering, just fleeing
+                    m.applyForce(fleeForce.mult(15));
+                }
+            } else {
+                m.applyForce(m.wander().mult(1.2));
+                m.applyForce(m.seek(rightWristVector).mult(1.5));
+            }
             m.applyForce(m.bounce());
+
             //m.applyForce(m.flee(Utils.vectorFromKeypoint(smoothPose.leftWrist),100).mult(50));
             //m.applyForce(m.flee(Utils.vectorFromKeypoint(smoothPose.rightWrist),100).mult(50));
             m.update();
             m.draw();
         }
-        for (o of owls) {
-            o.applyForce(o.wander().mult(0.5));
-            o.applyForce(o.arrive(createVector(width-75,50),150));
-            o.applyForce(o.bounce());
-            o.update();
-            o.draw();
+        // for (o of owls) {
+        //     o.applyForce(o.wander().mult(0.5));
+        //     o.applyForce(o.arrive(createVector(width-75,50),150));
+        //     o.applyForce(o.bounce());
+        //     o.update();
+        //     o.draw();
+        // }
+
+        if (time > 80 && flow > 80 && lightCounter <= 0) {
+            hasLight = !hasLight;
+            lightCounter = lightBounce * T;
         }
 
     }
-
 
 }
 
@@ -143,24 +179,6 @@ function draw() {
 function modelReady() {
     select('#status').html('');
     video.loop();
-}
-
-
-function drawKeypoints(p, v, opacity) {
-
-    fill(55, opacity);
-    noStroke();
-
-    let keys = Object.keys(p);
-    for (let f = 0; f < keys.length; f++) {
-        if (keys[f] == "leftEar" || keys[f] == "rightEar" ||
-            keys[f] == "leftEye" || keys[f] == "rightEye" ||
-            keys[f] == "nose") {
-            continue;
-        }
-        let keypoint = p[keys[f]];
-        circle(keypoint.x, keypoint.y, max(4, v[keys[f]]));
-    }
 }
 
 
@@ -276,4 +294,13 @@ function drawAvatar(p, opacity) {
 
     circle(p.leftEye.x, p.leftEye.y, 6);
     circle(p.rightEye.x, p.rightEye.y, 6);
+
+    if (hasLight) {
+        fill(255, 255, 150, 100)
+        circle(p.rightWrist.x, p.rightWrist.y, lightRadius * 1.5 * 2)
+        fill(255, 255, 150, 150)
+        circle(p.rightWrist.x, p.rightWrist.y, lightRadius * 2)
+        fill(255, 255, 255)
+        circle(p.rightWrist.x, p.rightWrist.y, lightRadius / 2)
+    }
 }
