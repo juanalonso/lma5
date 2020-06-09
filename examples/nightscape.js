@@ -126,6 +126,14 @@ function draw() {
         if (lightCounter > 0) {
             lightCounter--;
         }
+        
+        // for (o of owls) {
+        //     o.applyForce(o.wander().mult(0.5));
+        //     o.applyForce(o.arrive(createVector(width-75,50),150));
+        //     o.applyForce(o.bounce());
+        //     o.update();
+        //     o.draw();
+        // }
 
         drawAvatar(smoothPose);
         for (f of fireflies) {
@@ -158,13 +166,6 @@ function draw() {
             m.update();
             m.draw();
         }
-        // for (o of owls) {
-        //     o.applyForce(o.wander().mult(0.5));
-        //     o.applyForce(o.arrive(createVector(width-75,50),150));
-        //     o.applyForce(o.bounce());
-        //     o.update();
-        //     o.draw();
-        // }
 
         if (time > 80 && flow > 80 && lightCounter <= 0) {
             hasLight = !hasLight;
