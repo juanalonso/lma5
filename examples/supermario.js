@@ -3,7 +3,7 @@ let posedata;
 
 let smoothValue = {};
 
-let dt = 0.02;
+let dt = 1/6;
 let k = new Kinematic(dt);
 
 
@@ -24,20 +24,13 @@ function preload() {
 
 function setup() {
 
-    frameRate(100);
+    frameRate(60);
 
-    var canvas = createCanvas(720, 480);
+    var canvas = createCanvas(720, 240);
     canvas.parent('canvas-placeholder');
+    background('#5c94fc');
 
-    select('#T').html('dt=' + dt + ' T=' + T);
-
-    // for (let k = 0; k < e.joints.length; k++) {
-    //     var button = createElement('button', e.alpha[k].toFixed(2) + ' * ' + e.joints[k]);
-    //     button.attribute('data-idx', k);
-    //     button.attribute('data-value', e.alpha[k].toFixed(2));
-    //     button.mousePressed(updateAlpha);
-    //     button.parent('jointlist');
-    // }
+    select('#T').html('dt=' + dt.toFixed(2) + ' T=' + T);
 
 }
 
@@ -45,6 +38,7 @@ function setup() {
 function draw() {
 
     pose = Utils.fromTSV(posedata.getRow(index), e.joints);
+    console.log(pose);
 
     index += 1;
     if (index >= posedata.getRowCount()) {
@@ -54,7 +48,7 @@ function draw() {
     k.addPose(pose);
 
     //Kinematic
-    [velocity, acceleration, jerk] = k.getKinematic();
+    [velocity, acceleration, jerk] = k.getKinematic(false);
 
     //Effort
     let weight = e.weight(velocity);
@@ -74,36 +68,9 @@ function draw() {
 }
 
 
-// function updateAlpha() {
-//     let alpha = parseFloat(this.attribute('data-value')) + 0.25;
-//     if (alpha > 1) {
-//         alpha = 0;
-//     }
-//     e.updateAlpha(e.joints[this.attribute('data-idx')], alpha)
-//     this.attribute('data-value', alpha.toFixed(2));
-//     this.html(alpha.toFixed(2) + ' * ' + e.joints[this.attribute('data-idx')]);
-// }
-
-
 function drawAvatar(p, opacity) {
 
-    stroke(100, 200, 100, opacity);
-    ellipse(p.mario.x, p.mario.y, 1, 1);
-
-    // push();
-
-    // translate(width / 2, height * 1.5);
-    // scale(400, -400);
-    // strokeWeight(1 / 150);
-    // noFill();
-
-    // stroke(100, 200, 100, opacity);
-    // circle(p.rightHand.x, p.rightHand.z, 0.035);
-    // circle(p.leftHand.x, p.leftHand.z, 0.035);
-
-    // stroke(255, 100, 100, opacity);
-    // ellipse(p.head.x, p.head.z, 0.075, 0.075 * 1.35);
-
-    // pop();
+    stroke(255, 255, 255, opacity);
+    ellipse(p.mario.x, p.mario.y-240, 1, 1);
 
 }
