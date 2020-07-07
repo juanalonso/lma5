@@ -3,7 +3,7 @@ let posedata;
 
 let smoothValue = {};
 
-let dt = 1/6;
+let dt = 1 / 6;
 let k = new Kinematic(dt);
 
 
@@ -15,10 +15,15 @@ let e = new Effort(T, jointList);
 
 
 let index = 0;
-
+let trail = [];
+let TRAIL_LENGTH = 10;
+let SCREEN_CENTER = 360;
+let backgroundImg;
 
 function preload() {
     posedata = loadTable('data/SuperMarioBros.tsv', 'tsv');
+    backgroundImg = loadImage('data/SuperMarioBros_1-1.png');
+
 }
 
 
@@ -29,6 +34,8 @@ function setup() {
     var canvas = createCanvas(720, 240);
     canvas.parent('canvas-placeholder');
     background('#5c94fc');
+    //image(backgroundImg, 0, 0);
+
 
     select('#T').html('dt=' + dt.toFixed(2) + ' T=' + T);
 
@@ -38,7 +45,7 @@ function setup() {
 function draw() {
 
     pose = Utils.fromTSV(posedata.getRow(index), e.joints);
-    console.log(pose);
+    //console.log(pose);
 
     index += 1;
     if (index >= posedata.getRowCount()) {
@@ -61,16 +68,43 @@ function draw() {
     select('#space-effort').html(space.toFixed(2));
     select('#flow-effort').html(flow.toFixed(2));
 
-    //background(248);
+    let frame = {
+        x: pose.mario.x,
+        y: pose.mario.y,
+        v: velocity.mario === undefined ? 0 : velocity.mario
+    }
 
-    drawAvatar(pose,255);
+    trail.unshift(frame);
+    if (trail.length > TRAIL_LENGTH) {
+        trail.pop();
+    }
+
+    let backgroundPos = 0;
+    if (frame.x > SCREEN_CENTER) {
+        backgroundPos = SCREEN_CENTER - frame.x;
+    }
+
+    background('#5c94fc');
+    image(backgroundImg, backgroundPos, 0);
+    drawAvatar(trail);
 
 }
 
 
-function drawAvatar(p, opacity) {
+function drawAvatar(trail) {
 
-    stroke(255, 255, 255, opacity);
-    ellipse(p.mario.x, p.mario.y-240, 1, 1);
+    let v;
+    let marioOffset = 0;
+    if (trail[0].x > SCREEN_CENTER) {
+        marioOffset = SCREEN_CENTER - trail[0].x;
+    }
+
+    noStroke();
+    for (let j = 0; j < trail.length; j++) {
+        v = trail[j].v;
+        v = max(2, v);
+        fill(255, map(j, 0, TRAIL_LENGTH - 1, 255, 0));
+        circle(trail[j].x + 10 + marioOffset, trail[j].y - 240 + 8, v);
+    }
 
 }
