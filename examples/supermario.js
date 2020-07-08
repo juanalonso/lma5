@@ -17,7 +17,7 @@ let e = new Effort(T, jointList);
 let index = 0;
 let trail = [];
 let TRAIL_LENGTH = 10;
-let SCREEN_CENTER = 360;
+let SCREEN_CENTER = 80;
 let backgroundImg;
 
 function preload() {
@@ -31,7 +31,7 @@ function setup() {
 
     frameRate(60);
 
-    var canvas = createCanvas(720, 240);
+    var canvas = createCanvas(256, 240);
     canvas.parent('canvas-placeholder');
     background('#5c94fc');
     //image(backgroundImg, 0, 0);
