@@ -20,6 +20,7 @@ let TRAIL_LENGTH = 10;
 let SCREEN_CENTER = 80;
 let backgroundImg;
 
+
 function preload() {
     posedata = loadTable('data/SuperMarioBros.tsv', 'tsv');
     backgroundImg = loadImage('data/SuperMarioBros_1-1.png');
@@ -31,11 +32,9 @@ function setup() {
 
     frameRate(60);
 
-    var canvas = createCanvas(256, 240);
+    var canvas = createCanvas(512, 480);
     canvas.parent('canvas-placeholder');
     background('#5c94fc');
-    //image(backgroundImg, 0, 0);
-
 
     select('#T').html('dt=' + dt.toFixed(2) + ' T=' + T);
 
@@ -85,7 +84,7 @@ function draw() {
     }
 
     background('#5c94fc');
-    image(backgroundImg, backgroundPos, 0);
+    image(backgroundImg, backgroundPos * 2, 0);
     drawAvatar(trail);
 
 }
@@ -104,7 +103,7 @@ function drawAvatar(trail) {
         v = trail[j].v;
         v = max(2, v);
         fill(255, map(j, 0, TRAIL_LENGTH - 1, 255, 0));
-        circle(trail[j].x + 10 + marioOffset, trail[j].y - 240 + 8, v);
+        circle(trail[j].x * 2 + 20 + marioOffset * 2, trail[j].y * 2 - 480 + 16, v);
     }
 
 }
