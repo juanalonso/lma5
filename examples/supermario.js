@@ -1,7 +1,6 @@
 let pose;
 let posedata;
 
-let smoothValue = {};
 
 let dt = 1 / 6;
 let k = new Kinematic(dt);
