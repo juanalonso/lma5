@@ -13,10 +13,15 @@ class Kinematic {
     constructor(dt = 0.8) {
         this.dt = dt;
         this.maxPoses = 5;
+        this.reset();
+    }
+
+    reset() {
         this.poseList = [];
         this.smoothPoseList = [];
         this.isFirstRun = true;
         this.smoothValues = {};
+
     }
 
     addPose(pose) {
@@ -119,8 +124,8 @@ class Effort {
 
     updateAlpha(joint, alpha) {
         var index = this.joints.indexOf(joint);
-        if(index<0) {
-            throw new Error("lma5:updateAlpha 🤔 joint '"+joint+"' not found.");
+        if (index < 0) {
+            throw new Error("lma5:updateAlpha 🤔 joint '" + joint + "' not found.");
         }
         this.alpha[index] = alpha;
     }

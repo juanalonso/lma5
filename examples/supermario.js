@@ -48,6 +48,7 @@ function draw() {
     index += 1;
     if (index >= posedata.getRowCount()) {
         index = 0;
+        k.reset();
     }
 
     k.addPose(pose);
